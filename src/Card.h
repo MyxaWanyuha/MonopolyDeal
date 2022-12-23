@@ -21,6 +21,7 @@ namespace Monopoly
                 return e.first;
             }
         }
+        assert("FindByValue invalid value!\n");
     }
 
     enum class EActionType

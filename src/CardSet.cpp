@@ -1,4 +1,5 @@
 #include "CardSet.h"
+#include "Card.h"
 
 namespace Monopoly
 {
@@ -33,9 +34,11 @@ namespace Monopoly
         case EColor::Pink: return 3;
         case EColor::Railroad: return  4;
         case EColor::Red: return 3;
+        case EColor::None:
+        case EColor::All:
         default:
-            return 2;
-            break;
+            assert("ColorToPropertyCount get invalid argument!");
+            return 0;
         }
     }
 }

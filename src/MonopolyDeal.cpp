@@ -4,7 +4,7 @@
 int main()
 {
     Monopoly::Game g;
-    g.Init(2);
+    g.Init(5);
     g.BeginTurn();
     auto data = g.GetAllData();
     std::cout << data;

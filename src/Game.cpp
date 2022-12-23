@@ -8,10 +8,15 @@
 
 namespace Monopoly
 {
-    uint32_t seed = 1337322228;
+#if NDEBUG
+    uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+#else
+    uint32_t seed = 1337322228u;
+#endif
+
     Game::Game()
     {
-        std::ifstream file("cardList.csv");// TODO
+        std::ifstream file("cardList.csv");
         if (!file.is_open())
         {
             std::cerr << "Couldn't find a file!\n";
@@ -19,8 +24,8 @@ namespace Monopoly
         }
         CSVRow row;
         file >> row;// skip first row
-        const int rowsCount = 58;
-        for (int i = 0; i < rowsCount; ++i)
+        const int rowsWithCardsCount = 58;
+        for (int i = 0; i < rowsWithCardsCount; ++i)
         {
             if (!(file >> row))
             {
@@ -54,11 +59,10 @@ namespace Monopoly
             }
         }
         assert(m_Deck.size() == 106);// all cards readed
-        // uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
         std::shuffle(m_Deck.begin(), m_Deck.end(), std::default_random_engine(seed));
     }
 
-    bool Game::Init(int playersCount)
+    bool Game::Init(uint32_t playersCount)
     {
         if (playersCount < c_MinPlayersCount || playersCount > c_MaxPlayersCount)
         {
@@ -67,7 +71,7 @@ namespace Monopoly
         }
 
         m_Players.resize(playersCount);
-        for (int i = 0; i < playersCount; ++i)
+        for (uint32_t i = 0; i < playersCount; ++i)
         {
             PlayerTakeCardsFromDeck(m_Players[i], c_StartCardsCount);
         }
@@ -118,7 +122,7 @@ namespace Monopoly
         json result;
         result[c_JSON_CurrentPlayerIndex] = m_CurrentPlayerIndex;
 
-        for (int i = 0; i < m_Players.size(); ++i)
+        for (size_t i = 0; i < m_Players.size(); ++i)
         {
             const auto& player = m_Players[i];
             json playerData;
@@ -135,7 +139,7 @@ namespace Monopoly
             {
                 auto& sets = player.GetCardSets();
                 json setsData;
-                for(int j = 0; j < sets.size(); ++j)
+                for(size_t j = 0; j < sets.size(); ++j)
                     setsData += sets[j].ToJSON();
                 playerData[c_JSON_Sets] = setsData;
             }

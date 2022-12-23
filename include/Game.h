@@ -10,8 +10,8 @@ namespace Monopoly
 
 class Game
 {
-    const int c_MinPlayersCount = 2;
-    const int c_MaxPlayersCount = 5;
+    const uint32_t c_MinPlayersCount = 2;
+    const uint32_t c_MaxPlayersCount = 5;
     const int c_StartCardsCount = 5;
     const int c_TurnCardsCount = 3;
     const int c_PassGoCardsCount = 2;
@@ -19,7 +19,7 @@ class Game
     using Deck = std::deque<Card>;
 public:
     Game();
-    bool Init(int playersCount);
+    bool Init(uint32_t playersCount);
     
     bool CheckJustSayNo(int victimIndex);
     bool DealBreaker(int instigatorIndex, int victimIndex);// steal set from another player
@@ -33,7 +33,7 @@ public:
 private:
     Players m_Players;
     Deck m_Deck;
-    int m_CurrentPlayerIndex = 0;
+    uint32_t m_CurrentPlayerIndex = 0;
     int m_CurrentPlayerTurnCounter = c_TurnCardsCount;
 };
 

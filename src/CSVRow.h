@@ -10,7 +10,7 @@ class CSVRow
 public:
     std::string_view operator[](std::size_t index) const
     {
-        return std::string_view(&m_line[m_data[index] + 1], m_data[index + 1] - (m_data[index] + 1));
+        return std::string_view(&m_line[m_data[index] + 1u], m_data[index + 1u] - (m_data[index] + 1u));
     }
     std::size_t size() const
     {
