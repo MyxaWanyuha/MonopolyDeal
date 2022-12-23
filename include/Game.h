@@ -5,7 +5,6 @@
 using json = nlohmann::json;
 #include "Player.h"
 
-
 namespace Monopoly
 {
 

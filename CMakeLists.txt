@@ -13,6 +13,7 @@ set(GAME_PRIVATE_INCLUDES
     src/Card.h
     src/CardSet.h
     src/Player.h
+    src/CSVRow.h
 )
 
 set(GAME_PRIVATE_SOURCE
@@ -46,3 +47,14 @@ target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json)
 target_link_libraries(${GAME_PROJECT_NAME} PUBLIC nlohmann_json)
 target_link_libraries(${GAME_PROJECT_NAME} PUBLIC ${PROJECT_NAME})
 
+add_custom_command(
+        TARGET ${GAME_PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/cardList.csv
+                $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+
+add_custom_command(
+        TARGET ${GAME_PROJECT_NAME} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy
+                ${CMAKE_CURRENT_SOURCE_DIR}/resources/cardList.csv
+                ${CMAKE_CURRENT_BINARY_DIR})

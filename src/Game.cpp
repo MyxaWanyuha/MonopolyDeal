@@ -1,32 +1,60 @@
 #include "Game.h"
+#include <charconv>
 #include <iostream>
 #include <algorithm>
 #include <random>
 #include "JsonConstants.h"
+#include "CSVRow.h"
 
 namespace Monopoly
 {
     uint32_t seed = 1337322228;
     Game::Game()
     {
-        // TODO Init cards
+        std::ifstream file("cardList.csv");// TODO
+        if (!file.is_open())
+        {
+            std::cerr << "Couldn't find a file!\n";
+            exit(1);
+        }
+        CSVRow row;
+        file >> row;// skip first row
+        const int rowsCount = 58;
+        for (int i = 0; i < rowsCount; ++i)
+        {
+            if (!(file >> row))
+            {
+                std::cerr << "Can't read file!\n";
+                exit(2);
+            }
+            assert(row.size() == 7);
 
+            auto to_int = [](const std::string_view& input)
+            {
+                int out;
+                const std::from_chars_result result = std::from_chars(input.data(), input.data() + input.size(), out);
+                if (result.ec == std::errc::invalid_argument || result.ec == std::errc::result_out_of_range)
+                {
+                    std::cerr << "Can't read integer in file!\n";
+                    exit(3);
+                }
+                return out;
+            };
+
+            const std::string name(row[0]);
+            const auto cardType = FindByValue(CardTypeStrings, row[1]);
+            const int value = to_int(row[2]);
+            const int count = to_int(row[3]);
+            const auto color = FindByValue(ColorStrings, row[4]);
+            const auto secondColor = FindByValue(ColorStrings, row[5]);
+            const auto actionType = FindByValue(ActionTypeStrings, row[6]);
+            for (int j = 0; j < count; ++j)
+            {
+                m_Deck.push_front(Card(name, cardType, value, color, secondColor, actionType));
+            }
+        }
+        assert(m_Deck.size() == 106);// all cards readed
         // uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-
-        for(int i = 0; i < 10; ++i)
-            m_Deck.push_front(Card("PassGo", ECardType::Action, 1, EColor::None, EColor::None, EActionType::PassGo));
-        
-        for (int i = 0; i < 2; ++i)
-            m_Deck.push_front(Card("Double the rent", ECardType::Action, 1, EColor::None, EColor::None, EActionType::DoubleTheRent));
-
-        for (int i = 0; i < 5; ++i)
-            m_Deck.push_front(Card("Two million", ECardType::Money, 2, EColor::None, EColor::None, EActionType::None));
-
-        for (int i = 0; i < 3; ++i)
-            m_Deck.push_front(Card("Atlantic avenue", ECardType::Property, 3, EColor::Yellow, EColor::None, EActionType::None));
-        
-        m_Deck.push_front(Card("Wild Blue-Green", ECardType::Property, 4, EColor::Blue, EColor::Green, EActionType::None));
-
         std::shuffle(m_Deck.begin(), m_Deck.end(), std::default_random_engine(seed));
     }
 
