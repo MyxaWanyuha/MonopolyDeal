@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-
+project(MonopolyDeal)
 set(PROJECT_NAME MonopolyDeal)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT MonopolyDeal)
 
@@ -34,4 +34,7 @@ add_library(${PROJECT_NAME} STATIC
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_include_directories(${PROJECT_NAME} PUBLIC src)
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
+
+add_subdirectory(json)
+target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json)
 
