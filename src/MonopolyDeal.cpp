@@ -1,12 +1,16 @@
 #include <iostream>
-#include <array>
-#include <fstream>
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include "Game.h"
 
 int main()
 {
-    //std::ifstream f("example.json");
-    //json data = json::parse(f);
-    std::cout << "Hello World!\n";
+    Monopoly::Game g;
+    g.Init(2);
+    g.BeginTurn();
+    auto data = g.GetAllData();
+    std::cout << data;
+    // Current player has cards:
+    // 1. ...
+    // 2. ...
+    // wait input 0 or number
+    
 }

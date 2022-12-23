@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <array>
 #include <string>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 namespace Monopoly
 {
@@ -31,18 +33,18 @@ namespace Monopoly
 
     enum class EColor : uint32_t
     {
-        None       = 0,
-        Yellow     = 1 << 0,
-        Utility   = 1 << 1,
-        Brown      = 1 << 2,
-        Blue       = 1 << 3,
-        Green      = 1 << 4,
-        LightBlue  = 1 << 5,
-        Orange     = 1 << 6,
-        Pink       = 1 << 7,
-        Railroad   = 1 << 8,
-        Red        = 1 << 9,
-        All = Yellow | Utility | Brown | Blue | Green | LightBlue | Orange | Pink | Railroad | Red
+        None = 0,
+        Yellow,
+        Utility,
+        Brown,
+        Blue,
+        Green,
+        LightBlue,
+        Orange,
+        Pink,
+        Railroad,
+        Red,
+        All
     };
 
     enum class ECardType
@@ -54,28 +56,26 @@ namespace Monopoly
         Enhancement
     };
 
-    enum class EEnhancementType
-    {
-        None = 0,
-        House,
-        Hotel
-    };
-
     class Card
     {
     public:
-        Card(std::string&& name, ECardType type, int32_t value, EColor color, EActionType action, EEnhancementType enhancement, bool isFlipped)
-            : m_Name(name), m_Type(type), m_Value(value), m_Color(color), m_Action(action), m_Enhancement(enhancement), m_bIsFlipped(isFlipped)
+        Card(std::string&& name, ECardType type, int32_t value, EColor color, EColor secondColor, EActionType action)
+            : m_Name(name), m_Type(type), m_Value(value), m_MainColor(color), m_SecondColor(secondColor), m_Action(action)
         {
         }
+        
+        json ToJSON() const;
+
+        ECardType GetType() const { return m_Type; }
+        EColor GetColor() const { return m_MainColor; }
 
     private:
         std::string m_Name;
         ECardType m_Type = ECardType::None;
         int32_t m_Value = -1;
-        EColor m_Color = EColor::None;
+        EColor m_MainColor = EColor::None;
+        EColor m_SecondColor = EColor::None;
         EActionType m_Action = EActionType::None;
-        EEnhancementType m_Enhancement = EEnhancementType::None;
         bool m_bIsFlipped = false;
     };
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.16)
 project(MonopolyDeal)
 set(PROJECT_NAME MonopolyDeal)
 set(GAME_PROJECT_NAME MonopolyGame)
@@ -6,6 +6,7 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT $
 
 set(GAME_PUBLIC_INCLUDES
     include/Game.h
+    include/JsonConstants.h
 )
 
 set(GAME_PRIVATE_INCLUDES
@@ -34,6 +35,7 @@ add_library(${PROJECT_NAME} STATIC
 add_executable(${GAME_PROJECT_NAME}
     src/MonopolyDeal.cpp
 )
+target_include_directories(${GAME_PROJECT_NAME} PUBLIC include)
 
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_include_directories(${PROJECT_NAME} PUBLIC src)
@@ -42,4 +44,5 @@ target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
 add_subdirectory(json)
 target_link_libraries(${PROJECT_NAME} PUBLIC nlohmann_json)
 target_link_libraries(${GAME_PROJECT_NAME} PUBLIC nlohmann_json)
+target_link_libraries(${GAME_PROJECT_NAME} PUBLIC ${PROJECT_NAME})
 

@@ -1,6 +1,6 @@
+#pragma once
 #include <list>
 #include <memory>
-#include "Card.h"
 #include <vector>
 #include "CardSet.h"
 
@@ -11,14 +11,17 @@ namespace Monopoly
     {
     public:
         using CardSets = std::vector<CardSet>;
-        Player(CardContainer&& playerCards);
-        const CardContainer& GetCardsInHand() const { return m_CardsInHand; }
+
+        const CardContainer& GetCardsInHand() const { return m_Hand; }
+        const CardContainer& GetCardsInBank() const { return m_Bank; }
+        const CardSets& GetCardSets() const { return m_CardSets; }
+
         int CountBankMoney() const;
         void AddCardsToHand(CardContainer&& cards);
 
     private:
         CardContainer m_Bank;
-        CardContainer m_CardsInHand;
+        CardContainer m_Hand;
         CardSets m_CardSets;
     };
 
