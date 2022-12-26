@@ -10,31 +10,60 @@ namespace Monopoly
 
 class Game
 {
-    const uint32_t c_MinPlayersCount = 2;
-    const uint32_t c_MaxPlayersCount = 5;
-    const int c_StartCardsCount = 5;
-    const int c_TurnCardsCount = 3;
-    const int c_PassGoCardsCount = 2;
+    static const uint32_t c_MinPlayersCount = 2;
+    static const uint32_t c_MaxPlayersCount = 5;
+    static const int c_StartCardsCount = 5;
+    static const int c_TurnCardsCount = 3;
+    static const int c_PassGoCardsCount = 2;
+    static const int c_MaxCardsCountInTurnEnd = 7;
     using Players = std::vector<Player>;
-    using Deck = std::deque<Card>;
+    using Deck = std::deque<CardContainerElem>;
 public:
     Game();
     bool Init(uint32_t playersCount);
-    
-    bool CheckJustSayNo(int victimIndex);
-    bool DealBreaker(int instigatorIndex, int victimIndex);// steal set from another player
+    bool IsNotEnded() const { return m_bIsNotEnded; }
+
+    enum ETurn
+    {
+        Pass = 1,
+        FlipCard = 2,
+        PlayCard = 3
+    };
+    enum class ETurnOutput
+    {
+        IncorrectInput,
+        IncorrectIndex,
+        IncorrectCard,
+        CardProcessed,
+        NextPlayer
+    };
 
     void BeginTurn();
-    void Turn(const int input);
+    ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);
+    int GetExtraCardsCount() const;
+    void RemoveExtraCards(const CardIndexesContainer& extraCardsIndexes);
+    void EndTurn();
 
-    void PlayerTakeCardsFromDeck(Player& player, const int count);
+    enum EActionInput
+    {
+        ToBank = 0,
+        Play = 1
+    };
+    virtual EActionInput GetActionInput() const = 0;
 
     json GetAllData() const;
+
+    // Action cards process
+    ETurnOutput ProcessActionCard(Player& currentPlayer, CardContainerElem& card);
+    ETurnOutput PassGo(Player& player);
 private:
+    void PlayerTakeCardsFromDeck(Player& player, const int count);
+
     Players m_Players;
     Deck m_Deck;
     uint32_t m_CurrentPlayerIndex = 0;
     int m_CurrentPlayerTurnCounter = c_TurnCardsCount;
+    bool m_bIsNotEnded = true;
 };
 
 }

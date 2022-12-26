@@ -1,34 +1,37 @@
 #pragma once
 #include <list>
-#include "Card.h"
-
+#include <memory>
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 namespace Monopoly
 {
-    using CardContainer = std::list<Card>;
-
+    using CardContainerElem = std::shared_ptr<class ICard>;
+    //using CardContainer = std::list<CardContainerElem>;
+    class CardContainer : public std::list<CardContainerElem>
+    {
+    public:
+        CardContainerElem GetAndErase(int index)
+        {
+            auto p = begin();
+            std::advance(p, index);
+            auto result = *p;
+            erase(p);
+            return result;
+        }
+    };
     class CardSet
     {
     public:
-        CardSet(EColor color)
-            : m_MaxCardsCount(ColorToPropertyCount(color))
+        CardSet(enum class EColor color)
+            //: m_MaxCardsCount(ColorToPropertyCount(color))
         {
         }
-
         const CardContainer& GetCards() const { return m_Cards; }
-        void AddCard(const Card& card);
+        void AddCard(const CardContainerElem& card);
         json ToJSON() const;
-
-        bool IsFull() const { return false; /*TODO*/ }
-        bool IsCanHasHouse() const { return IsFull(); }
-        bool IsCanHasHotel() const { return IsFull() && IsHasHouse(); }
-        bool IsHasHouse() const { return m_bIsHasHouse; /*TODO*/ }
-        bool IsHasHotel() const{ return m_bIsHasHotel; /*TODO*/ }
     private:
-        int ColorToPropertyCount(const EColor color);
-
         CardContainer m_Cards;
-        const int m_MaxCardsCount;
         bool m_bIsHasHouse = false;
         bool m_bIsHasHotel = false;
     };

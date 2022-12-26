@@ -3,12 +3,6 @@
 namespace Monopoly
 {
 
-    int Player::CountBankMoney() const
-    {
-        // TODO
-        return 0;
-    }
-
     void Player::AddCardsToHand(CardContainer&& cards)
     {
         m_Hand.splice(m_Hand.end(), cards);
@@ -35,9 +29,26 @@ namespace Monopoly
         // TestOnly
     }
 
-    int CountBankMoney()
+    CardContainer Player::RemoveCardsFromHand(const CardIndexesContainer& cardIndexes)
     {
         // TODO
-        return 0;
+        return CardContainer();
     }
+
+    CardContainerElem Player::RemoveCardFromHand(const int cardIndex)
+    {
+        return m_Hand.GetAndErase(cardIndex);
+    }
+
+    void Player::AddCardToBank(const CardContainerElem& card)
+    {
+        m_Bank.emplace_back(card);
+    }
+
+    void Player::AddProperty(const CardContainerElem& card)
+    {
+        //TODO
+        // add to set or create new set
+    }
+
 }

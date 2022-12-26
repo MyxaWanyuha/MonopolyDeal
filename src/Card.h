@@ -8,22 +8,8 @@ using json = nlohmann::json;
 
 namespace Monopoly
 {
-    const int g_BirthdayGiftAmount = 2;
-    const int g_DebtAmount = 5;
-    
-    template<typename T>
-    T FindByValue(const std::unordered_map<T, const char*>& map, const std::string_view& value)
-    {
-        for (auto& e : map)
-        {
-            if (e.second == value)
-            {
-                return e.first;
-            }
-        }
-        assert("FindByValue invalid value!\n");
-    }
-
+    class Player;
+    class Game;
     enum class EActionType
     {
         None = 0,
@@ -45,31 +31,9 @@ namespace Monopoly
         RentBlueGreen
     };
 
-    static const std::unordered_map<EActionType, const char*> ActionTypeStrings =
-    {
-        {EActionType::None, "None"},
-        {EActionType::PassGo, "PassGo"},
-        {EActionType::DoubleTheRent, "DoubleTheRent"},
-        {EActionType::JustSayNo, "JustSayNo"},
-        {EActionType::Hotel, "Hotel"},
-        {EActionType::House, "House"},
-        {EActionType::DealBreaker, "DealBreaker"},
-        {EActionType::SlyDeal, "SlyDeal"},
-        {EActionType::ForcedDeal, "ForcedDeal"},
-        {EActionType::ItsMyBirthday, "ItsMyBirthday"},
-        {EActionType::DebtCollector, "DebtCollector"},
-        {EActionType::RentWild, "RentWild"},
-        {EActionType::RentLightBlueBrown, "RentLightBlueBrown"},
-        {EActionType::RentOrangePink, "RentOrangePink"},
-        {EActionType::RentYellowRed, "RentYellowRed"},
-        {EActionType::RentUtilityRailroad, "RentUtilityRailroad"},
-        {EActionType::RentBlueGreen, "RentBlueGreen"}
-    };
-
     enum class EColor
     {
-        None = 0,
-        Yellow,
+        Yellow = 0,
         Utility,
         Brown,
         Blue,
@@ -79,23 +43,8 @@ namespace Monopoly
         Pink,
         Railroad,
         Red,
-        All
-    };
-
-    static const std::unordered_map<EColor, const char*> ColorStrings =
-    {
-        {EColor::None, "None"},
-        {EColor::Yellow, "Yellow"},
-        {EColor::Utility, "Utility"},
-        {EColor::Brown, "Brown"},
-        {EColor::Blue, "Blue"},
-        {EColor::Green, "Green"},
-        {EColor::LightBlue, "LightBlue"},
-        {EColor::Orange, "Orange"},
-        {EColor::Pink, "Pink"},
-        {EColor::Railroad, "Railroad"},
-        {EColor::Red, "Red"},
-        {EColor::All, "All"}
+        All,
+        None
     };
 
     enum class ECardType
@@ -106,35 +55,72 @@ namespace Monopoly
         Action
     };
 
-    static const std::unordered_map<ECardType, const char*> CardTypeStrings =
-    {
-        {ECardType::None, "None"},
-        {ECardType::Money, "Money"},
-        {ECardType::Property, "Property"},
-        {ECardType::Action, "Action"}
-    };
-
-    class Card
+    class ICard
     {
     public:
-        Card(const std::string& name, ECardType type, int32_t value, EColor color, EColor secondColor, EActionType action)
-            : m_Name(name), m_Type(type), m_Value(value), m_MainColor(color), m_SecondColor(secondColor), m_Action(action)
+        ICard(const std::string& name)
+            : m_Name(name)
         {
         }
-        
-        json ToJSON() const;
-
-        ECardType GetType() const { return m_Type; }
-        EColor GetColor() const { return m_MainColor; }
-
+        const std::string& GetName() const { return m_Name; }
+        virtual ECardType GetType() const = 0;
+        virtual EActionType GetActionType() const = 0;
     private:
         std::string m_Name;
-        ECardType m_Type = ECardType::None;
-        int32_t m_Value = -1;
-        EColor m_MainColor = EColor::None;
-        EColor m_SecondColor = EColor::None;
-        EActionType m_Action = EActionType::None;
-        bool m_bIsFlipped = false;
     };
+
+    class MoneyCard : public ICard
+    {
+    public:
+        MoneyCard(const std::string& name, uint32_t value)
+            : ICard(name), m_Value(value)
+        {
+        }
+
+        virtual ECardType GetType() const override { return ECardType::Money; }
+        virtual EActionType GetActionType() const { return EActionType::None; }
+        uint32_t GetValue() const { return m_Value; }
+    private:
+        uint32_t m_Value = 0;
+    };
+
+    class ActionCard : public MoneyCard
+    {
+    public:
+        ActionCard(const std::string& name, uint32_t value)
+            : MoneyCard(name, value)
+        {
+        }
+
+        virtual ECardType GetType() const override { return ECardType::Action; }
+        virtual EActionType GetActionType() const { return EActionType::None; }
+    private:
+        uint32_t m_Value = 0;
+    };
+
+#define ActionCardClass(Type_) \
+    class Type_ : public ActionCard \
+    { \
+    public: \
+        virtual EActionType GetActionType() const override { return EActionType::Type_; } \
+    }; \
+
+    ActionCardClass(PassGo);
+    ActionCardClass(DoubleTheRent);
+    ActionCardClass(JustSayNo);
+    ActionCardClass(Hotel);
+    ActionCardClass(House);
+    ActionCardClass(DealBreaker);
+    ActionCardClass(SlyDeal);
+    ActionCardClass(ForcedDeal);
+    ActionCardClass(ItsMyBirthday);
+    ActionCardClass(DebtCollector);
+    ActionCardClass(RentWild);
+    ActionCardClass(RentLightBlueBrown);
+    ActionCardClass(RentOrangePink);
+    ActionCardClass(RentYellowRed);
+    ActionCardClass(RentUtilityRailroad);
+    ActionCardClass(RentBlueGreen);
+#undef ActionCard(Type_)
 
 }
