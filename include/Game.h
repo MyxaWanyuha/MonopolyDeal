@@ -50,14 +50,21 @@ public:
         Play = 1
     };
     virtual EActionInput GetActionInput() const = 0;
+    virtual int SelectSetIndex(const std::vector<int>& indexes) const = 0;
+    virtual void InputDealBreaker(int& victimIndex, int& setIndex) const = 0;
+    virtual bool InputWannaUseJustSayNo(const int victimIndex) const = 0;
 
     json GetAllData() const;
+
+private:
+    void PlayerTakeCardsFromDeck(Player& player, const int count);
 
     // Action cards process
     ETurnOutput ProcessActionCard(Player& currentPlayer, CardContainerElem& card);
     ETurnOutput PassGo(Player& player);
-private:
-    void PlayerTakeCardsFromDeck(Player& player, const int count);
+    ETurnOutput Enhancement(Player& player, const CardContainerElem& card);
+    ETurnOutput DealBreaker(Player& player, const CardContainerElem& card);
+    bool JustSayNo(const int player1Index, const int player2Index);
 
     Players m_Players;
     Deck m_Deck;

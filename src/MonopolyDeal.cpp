@@ -9,9 +9,6 @@ class ConsoleGame : protected Monopoly::Game
             : Input(input), CardIndex(cardIndex), SetIndex(setIndex)
         {
         }
-        TurnInput()
-        {
-        }
         Game::ETurn Input;
         int CardIndex;
         int SetIndex;
@@ -34,11 +31,10 @@ public:
             // Game::GetCurrentPlayerIndex();
             // Game::GetCurrentPlayerAllData();
             // Game::GetOtherPlayersPublicData();
-            TurnInput turn;
             Game::ETurnOutput turnOutput;
             do
             {
-                turn = InputTurn();
+                TurnInput turn = InputTurn();
                 turnOutput = Game::Turn(turn.Input, turn.CardIndex, turn.SetIndex);
                 if (turnOutput == Game::ETurnOutput::IncorrectInput)
                 {
@@ -82,6 +78,7 @@ private:
             case Game::ETurn::Pass:
                 return TurnInput(Game::ETurn::Pass);
             case Game::ETurn::FlipCard:
+            {
                 std::cout << "Input set index: ";
                 int setIndex;
                 std::cin >> setIndex;
@@ -89,11 +86,14 @@ private:
                 int index;
                 std::cin >> index;
                 return TurnInput(turn, index, setIndex);
+            }
             case Game::ETurn::PlayCard:
+            {
                 std::cout << "Input card index: ";
                 int index;
                 std::cin >> index;
                 return TurnInput(turn, index);
+            }
             default:
                 std::cerr << "Input is incorrect! Try again:\n";
             }
@@ -104,10 +104,24 @@ private:
     {
         std::cout << "What do you want to do with this action card(0 - to bank, 1 - play): ";
         int input;
-        while ((std::cin >> input) && (input != EActionInput::ToBank || input != EActionInput::Play))
-            std::cout << "Input is incorrect! Try again:\n";
-
+        do {
+            std::cin >> input;
+            if (input != EActionInput::ToBank && input != EActionInput::Play)
+            {
+                std::cout << "Input is incorrect! Try again:\n";
+            }
+            else
+            {
+                break;
+            }
+        } while (1);
         return (EActionInput)input;
+    }
+
+    virtual int SelectSetIndex(const std::vector<int>& indexes) const override
+    {
+        // TODO
+        return 0;
     }
 };
 

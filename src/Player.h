@@ -16,8 +16,15 @@ namespace Monopoly
         const CardContainer& GetCardsInHand() const { return m_Hand; }
         const CardContainer& GetCardsInBank() const { return m_Bank; }
         const CardSets& GetCardSets() const { return m_CardSets; }
-
+        
+        int GetIndexJustSayNo() const;
+        bool AddHouseToCardSet(int setIndex, const CardContainerElem& card);
+        bool AddHotelToCardSet(int setIndex, const CardContainerElem& card);
         void AddCardsToHand(CardContainer&& cards);
+
+        void AddSet(CardSet&& set);
+        CardSet RemoveSet(int setIndex);
+
         CardContainer RemoveCardsFromHand(const CardIndexesContainer& cardIndexes);
         CardContainerElem RemoveCardFromHand(const int cardIndex);
         void AddCardToBank(const CardContainerElem& card);

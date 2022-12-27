@@ -1,7 +1,23 @@
 #include "Player.h"
+#include "Card.h"
 
 namespace Monopoly
 {
+
+    int Player::GetIndexJustSayNo() const
+    {
+        return m_Hand.FindByActionType(EActionType::JustSayNo);
+    }
+
+    bool Player::AddHouseToCardSet(int setIndex, const CardContainerElem& card)
+    {
+        return m_CardSets[setIndex].AddHouse(card);
+    }
+
+    bool Player::AddHotelToCardSet(int setIndex, const CardContainerElem& card)
+    {
+        return m_CardSets[setIndex].AddHotel(card);
+    }
 
     void Player::AddCardsToHand(CardContainer&& cards)
     {
@@ -27,6 +43,18 @@ namespace Monopoly
                 ++it;
         }*/
         // TestOnly
+    }
+
+    void Player::AddSet(CardSet&& set)
+    {
+        m_CardSets.emplace_back(set);
+    }
+
+    CardSet Player::RemoveSet(int setIndex)
+    {
+        auto res = std::move(m_CardSets[setIndex]);
+        m_CardSets.erase(m_CardSets.begin() + setIndex);
+        return res;
     }
 
     CardContainer Player::RemoveCardsFromHand(const CardIndexesContainer& cardIndexes)

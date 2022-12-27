@@ -1,8 +1,11 @@
 #pragma once
+#include <unordered_map>
+#include <vector>
 #include <list>
 #include <memory>
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
+#include "Card.h"
 
 namespace Monopoly
 {
@@ -19,21 +22,39 @@ namespace Monopoly
             erase(p);
             return result;
         }
+
+        int FindByActionType(const EActionType action) const
+        {
+            int res = 0;
+            for (auto it = begin(); it != end(); ++it)
+            {
+                if ((*it)->GetActionType() == action)
+                    return res;
+                ++res;
+            }
+            return -1;
+        }
     };
+
     class CardSet
     {
     public:
-        CardSet(enum class EColor color)
-            //: m_MaxCardsCount(ColorToPropertyCount(color))
-        {
-        }
+        CardSet(EColor color);
         const CardContainer& GetCards() const { return m_Cards; }
         void AddCard(const CardContainerElem& card);
         json ToJSON() const;
+        EColor GetColor() const;
+        bool IsFull() const;
+        bool AddHouse(const CardContainerElem& cardHouse);
+        bool AddHotel(const CardContainerElem& cardHotel);
+        bool IsHasHouse() const;
+        bool IsHasHotel() const;
     private:
         CardContainer m_Cards;
-        bool m_bIsHasHouse = false;
-        bool m_bIsHasHotel = false;
+        CardContainerElem m_House = nullptr;
+        CardContainerElem m_Hotel = nullptr;
+        EColor m_Color;
+        static const std::unordered_map<EColor, std::vector<int>> c_RentValues;
     };
 
 }

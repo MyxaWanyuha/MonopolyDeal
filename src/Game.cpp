@@ -148,12 +148,11 @@ namespace Monopoly
         switch (card->GetActionType())
         {
         case EActionType::PassGo:
-            PassGo(currentPlayer);
-            return ETurnOutput::CardProcessed;
+            return PassGo(currentPlayer);
         case EActionType::Hotel:
-            break;
+            return Enhancement(currentPlayer, card);
         case EActionType::House:
-            break;
+            return Enhancement(currentPlayer, card);
         case EActionType::DealBreaker:
             break;
         case EActionType::SlyDeal:
@@ -234,4 +233,59 @@ namespace Monopoly
         return ETurnOutput::CardProcessed;
     }
 
+    Game::ETurnOutput Game::Enhancement(Player& player, const CardContainerElem& card)
+    {
+        std::vector<int> setsIndexes;
+        const auto& sets = player.GetCardSets();
+        for (int i = 0; i < sets.size(); ++i)
+        {
+            const auto color = sets[i].GetColor();
+            const auto isHasEnhancement = card->GetActionType() == EActionType::House ? sets[i].IsHasHouse() : sets[i].IsHasHotel();
+            if (color != EColor::Railroad && color != EColor::Utility && isHasEnhancement == false)
+            {
+                setsIndexes.emplace_back(i);
+            }
+        }
+
+        if (setsIndexes.size() == 0)
+        {
+            return ETurnOutput::IncorrectCard;
+        }
+
+        auto index = SelectSetIndex(setsIndexes);
+        if (std::find(setsIndexes.begin(), setsIndexes.end(), index) == setsIndexes.end())
+        {
+            return ETurnOutput::IncorrectIndex;
+        }
+
+        if(player.AddHouseToCardSet(index, card) || player.AddHotelToCardSet(index, card))
+            return ETurnOutput::CardProcessed;
+        return ETurnOutput::IncorrectCard;
+    }
+
+    Game::ETurnOutput Game::DealBreaker(Player& player, const CardContainerElem& card)
+    {
+        int victimIndex, setIndex;
+        InputDealBreaker(victimIndex, setIndex);
+
+        if (!m_Players[victimIndex].GetCardSets()[setIndex].IsFull())
+            return ETurnOutput::IncorrectIndex;
+
+        if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
+        {
+            m_Players[m_CurrentPlayerIndex].AddSet(m_Players[victimIndex].RemoveSet(setIndex));
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
+    bool Game::JustSayNo(const int victimIndex, const int instigatorIndex)
+    {
+        auto i = m_Players[victimIndex].GetIndexJustSayNo();
+        if (i >= 0 && InputWannaUseJustSayNo(victimIndex))
+        {
+            m_Players[victimIndex].RemoveCardFromHand(i);
+            return !JustSayNo(instigatorIndex, victimIndex);
+        }
+        return false;
+    }
 }
