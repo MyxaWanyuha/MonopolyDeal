@@ -52,6 +52,9 @@ public:
     virtual EActionInput GetActionInput() const = 0;
     virtual int SelectSetIndex(const std::vector<int>& indexes) const = 0;
     virtual void InputDealBreaker(int& victimIndex, int& setIndex) const = 0;
+    virtual void InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet) = 0;
+    virtual void InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet) = 0;
+
     virtual bool InputWannaUseJustSayNo(const int victimIndex) const = 0;
 
     json GetAllData() const;
@@ -64,6 +67,9 @@ private:
     ETurnOutput PassGo(Player& player);
     ETurnOutput Enhancement(Player& player, const CardContainerElem& card);
     ETurnOutput DealBreaker(Player& player, const CardContainerElem& card);
+    ETurnOutput SlyDeal(Player& player, const CardContainerElem& card);
+    ETurnOutput ForcedDeal(Player& player, const CardContainerElem& card);
+
     bool JustSayNo(const int player1Index, const int player2Index);
 
     Players m_Players;

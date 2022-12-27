@@ -154,11 +154,11 @@ namespace Monopoly
         case EActionType::House:
             return Enhancement(currentPlayer, card);
         case EActionType::DealBreaker:
-            break;
+            return DealBreaker(currentPlayer, card);
         case EActionType::SlyDeal:
-            break;
+            return SlyDeal(currentPlayer, card);
         case EActionType::ForcedDeal:
-            break;
+            return ForcedDeal(currentPlayer, card);
         case EActionType::ItsMyBirthday:
             break;
         case EActionType::DebtCollector:
@@ -273,7 +273,40 @@ namespace Monopoly
 
         if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
         {
-            m_Players[m_CurrentPlayerIndex].AddSet(m_Players[victimIndex].RemoveSet(setIndex));
+            player.AddSet(m_Players[victimIndex].RemoveSet(setIndex));
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
+    Game::ETurnOutput Game::SlyDeal(Player& player, const CardContainerElem& card)
+    {
+        int victimIndex, setIndex, propertyIndexInSet;
+        InputSlyDeal(victimIndex, setIndex, propertyIndexInSet);
+
+        if (m_Players[victimIndex].GetCardSets()[setIndex].IsFull())
+            return ETurnOutput::IncorrectIndex;
+
+        if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
+        {
+            player.AddProperty(m_Players[victimIndex].RemoveCardFromSet(setIndex, propertyIndexInSet));
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
+    Game::ETurnOutput Game::ForcedDeal(Player& player, const CardContainerElem& card)
+    {
+        int victimIndex, victimSetIndex, victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet;
+        InputForcedDeal(victimIndex, victimSetIndex, victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet);
+
+        if (m_Players[victimIndex].GetCardSets()[victimIndex].IsFull() || m_Players[victimIndex].GetCardSets()[playerSetIndex].IsFull())
+            return ETurnOutput::IncorrectIndex;
+
+        if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
+        {
+            auto victimCard = m_Players[victimIndex].RemoveCardFromSet(victimSetIndex, victimPropertyIndexInSet);
+            auto instigatorCard = m_Players[m_CurrentPlayerIndex].RemoveCardFromSet(playerSetIndex, playerPropertyIndexInSet);
+            player.AddProperty(victimCard);
+            m_Players[victimIndex].AddProperty(instigatorCard);
         }
         return ETurnOutput::CardProcessed;
     }

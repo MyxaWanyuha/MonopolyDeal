@@ -28,6 +28,11 @@ namespace Monopoly
         m_Cards.push_back(card);
     }
 
+    CardContainerElem CardSet::RemoveCard(int index)
+    {
+        return m_Cards.GetAndErase(index);
+    }
+
     json CardSet::ToJSON() const
     {
         json result;

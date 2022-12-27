@@ -50,11 +50,16 @@ namespace Monopoly
         m_CardSets.emplace_back(set);
     }
 
-    CardSet Player::RemoveSet(int setIndex)
+    CardSet Player::RemoveSet(const int setIndex)
     {
         auto res = std::move(m_CardSets[setIndex]);
         m_CardSets.erase(m_CardSets.begin() + setIndex);
         return res;
+    }
+
+    CardContainerElem Player::RemoveCardFromSet(const int setIndex, const int propertyIndexInSet)
+    {
+        return m_CardSets[setIndex].RemoveCard(propertyIndexInSet);
     }
 
     CardContainer Player::RemoveCardsFromHand(const CardIndexesContainer& cardIndexes)

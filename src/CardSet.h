@@ -42,6 +42,7 @@ namespace Monopoly
         CardSet(EColor color);
         const CardContainer& GetCards() const { return m_Cards; }
         void AddCard(const CardContainerElem& card);
+        CardContainerElem RemoveCard(int index);
         json ToJSON() const;
         EColor GetColor() const;
         bool IsFull() const;

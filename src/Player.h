@@ -23,7 +23,8 @@ namespace Monopoly
         void AddCardsToHand(CardContainer&& cards);
 
         void AddSet(CardSet&& set);
-        CardSet RemoveSet(int setIndex);
+        CardSet RemoveSet(const int setIndex);
+        CardContainerElem RemoveCardFromSet(const int setIndex, const int propertyIndexInSet);
 
         CardContainer RemoveCardsFromHand(const CardIndexesContainer& cardIndexes);
         CardContainerElem RemoveCardFromHand(const int cardIndex);
