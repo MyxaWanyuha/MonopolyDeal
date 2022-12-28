@@ -50,6 +50,7 @@ namespace Monopoly
         bool AddHotel(const CardContainerElem& cardHotel);
         bool IsHasHouse() const;
         bool IsHasHotel() const;
+        int GetPayValue() const;
     private:
         CardContainer m_Cards;
         CardContainerElem m_House = nullptr;

@@ -59,8 +59,10 @@ protected:
     virtual void InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet) = 0;
     virtual void InputDebtCollector(int& victimIndex) = 0;
     virtual void InputPay(int& notUsed, std::vector<int>& moneyIndexes, std::unordered_map<int, std::vector<int>>& setIndexes) = 0;
+    virtual void InputRentWild(int& victimIndex, int& setIndex) = 0;
+    virtual void virtual InputRentTwoColors(int& setIndex) = 0;
 
-    virtual bool InputWannaUseJustSayNo(const int victimIndex) const = 0;
+    virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
 
     json GetAllData() const;
 
@@ -76,9 +78,10 @@ private:
     ETurnOutput ForcedDeal(Player& player, const CardContainerElem& card);
     ETurnOutput ItsMyBirthday(Player& player, const CardContainerElem& card);
     ETurnOutput DebtCollector(Player& player, const CardContainerElem& card);
-
+    ETurnOutput RentWild(Player& player, const CardContainerElem& card);
+    ETurnOutput RentTwoColors(Player& player, const CardContainerElem& card);
     bool JustSayNo(const int player1Index, const int player2Index);
-
+    bool DoubleTheRent(const int playerIndex);
     void Pay(int victimIndex, int amount);
 
 

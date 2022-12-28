@@ -64,8 +64,10 @@ namespace Monopoly
         }
         const std::string& GetName() const { return m_Name; }
         virtual ECardType GetType() const = 0;
-        virtual EActionType GetActionType() const = 0;
+        virtual EActionType GetActionType() const { return EActionType::None; }
         virtual uint32_t GetValue() const = 0;
+        virtual EColor GetColor1() const { return EColor::None; }
+        virtual EColor GetColor2() const { return EColor::None; }
     private:
         std::string m_Name;
     };
@@ -79,7 +81,6 @@ namespace Monopoly
         }
 
         virtual ECardType GetType() const override { return ECardType::Money; }
-        virtual EActionType GetActionType() const { return EActionType::None; }
         virtual uint32_t GetValue() const override { return m_Value; }
     private:
         uint32_t m_Value = 0;
@@ -94,7 +95,6 @@ namespace Monopoly
         }
 
         virtual ECardType GetType() const override { return ECardType::Action; }
-        virtual EActionType GetActionType() const { return EActionType::None; }
     private:
         uint32_t m_Value = 0;
     };
@@ -117,11 +117,24 @@ namespace Monopoly
     ActionCardClass(ItsMyBirthday);
     ActionCardClass(DebtCollector);
     ActionCardClass(RentWild);
-    ActionCardClass(RentLightBlueBrown);
-    ActionCardClass(RentOrangePink);
-    ActionCardClass(RentYellowRed);
-    ActionCardClass(RentUtilityRailroad);
-    ActionCardClass(RentBlueGreen);
 #undef ActionCard(Type_)
+
+#define RentTwoColorsCardClass(Type_, Color1_, Color2_) \
+    class Type_ : public ActionCard \
+    { \
+    public: \
+        Type_(const std::string& name, uint32_t value, EColor color1, EColor color2) \
+            : ActionCard(name, value) { } \
+        virtual EActionType GetActionType() const override { return EActionType::Type_; } \
+        virtual EColor GetColor1() const override { return Color1_; } \
+        virtual EColor GetColor2() const override { return Color2_; } \
+    }; \
+
+    RentTwoColorsCardClass(RentLightBlueBrown, EColor::LightBlue, EColor::Brown);
+    RentTwoColorsCardClass(RentOrangePink, EColor::Orange, EColor::Pink);
+    RentTwoColorsCardClass(RentYellowRed, EColor::Yellow, EColor::Red);
+    RentTwoColorsCardClass(RentUtilityRailroad, EColor::Utility, EColor::Railroad);
+    RentTwoColorsCardClass(RentBlueGreen, EColor::Blue, EColor::Green);
+#undef RentTwoColorsCardClass(Type_)
 
 }

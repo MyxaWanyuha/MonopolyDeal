@@ -160,25 +160,21 @@ namespace Monopoly
         case EActionType::ForcedDeal:
             return ForcedDeal(currentPlayer, card);
         case EActionType::ItsMyBirthday:
-            break;
+            return ItsMyBirthday(currentPlayer, card);
         case EActionType::DebtCollector:
-            break;
+            return DebtCollector(currentPlayer, card);
         case EActionType::RentWild:
-            break;
+            return RentWild(currentPlayer, card);
+
         case EActionType::RentLightBlueBrown:
-            break;
         case EActionType::RentOrangePink:
-            break;
         case EActionType::RentYellowRed:
-            break;
         case EActionType::RentUtilityRailroad:
-            break;
         case EActionType::RentBlueGreen:
-            break;
+            return RentTwoColors(currentPlayer, card);
+
         case EActionType::None:
-            return ETurnOutput::IncorrectCard;
         case EActionType::DoubleTheRent:
-            return ETurnOutput::IncorrectCard;
         case EActionType::JustSayNo:
             return ETurnOutput::IncorrectCard;
         default:
@@ -335,14 +331,55 @@ namespace Monopoly
         return ETurnOutput::CardProcessed;
     }
 
+    Game::ETurnOutput Game::RentWild(Player& player, const CardContainerElem& card)
+    {
+        int victimIndex, setIndex;
+        InputRentWild(victimIndex, setIndex);
+
+        auto payValue = player.GetCardSets()[setIndex].GetPayValue();
+
+        // TODO DoubleTheRent(const int playerIndex);
+        // justsayno отменяет дабл зе рент, если он был использован
+        if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
+        {
+            Pay(victimIndex, payValue);
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
+    Game::ETurnOutput Game::RentTwoColors(Player& player, const CardContainerElem& card)
+    {
+        int setIndex;
+        InputRentTwoColors(setIndex);
+
+        auto payValue = player.GetCardSets()[setIndex].GetPayValue();
+
+        // TODO DoubleTheRent(const int playerIndex);
+        // justsayno отменяет дабл зе рент (для одного игрока?), если он был использован
+        for (int i = 0; i < m_Players.size(); ++i)
+        {
+            if (i != m_CurrentPlayerIndex && !JustSayNo(i, m_CurrentPlayerIndex))
+            {
+                Pay(i, payValue);
+            }
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
     bool Game::JustSayNo(const int victimIndex, const int instigatorIndex)
     {
         auto i = m_Players[victimIndex].GetIndexJustSayNo();
-        if (i >= 0 && InputWannaUseJustSayNo(victimIndex))
+        if (i >= 0 && InputUseJustSayNo(victimIndex))
         {
             m_Players[victimIndex].RemoveCardFromHand(i);
             return !JustSayNo(instigatorIndex, victimIndex);
         }
+        return false;
+    }
+
+    bool Game::DoubleTheRent(const int playerIndex)
+    {
+        // TODO
         return false;
     }
     

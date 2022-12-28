@@ -70,6 +70,7 @@ namespace Monopoly
     CardContainer Player::RemoveCardsFromSet(const int index, const CardIndexesContainer& cardIndexes)
     {
         // TODO
+        // Check Wild Property with value == 0
         return CardContainer();
     }
 

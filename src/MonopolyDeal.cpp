@@ -123,6 +123,32 @@ private:
         // TODO
         return 0;
     }
+
+    virtual void InputDealBreaker(int& victimIndex, int& setIndex) const override
+    {
+        // TODO
+    }
+
+    virtual void InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet) override
+    {
+        // TODO
+    }
+
+    virtual void InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet) override
+    {
+        // TODO
+    }
+
+    virtual void InputDebtCollector(int& victimIndex) override
+    {
+        // TODO
+    }
+
+    virtual void InputPay(int& notUsed, std::vector<int>& moneyIndexes, std::unordered_map<int, std::vector<int>>& setIndexes) override
+    {
+        // TODO
+    }
+
 };
 
 int main()

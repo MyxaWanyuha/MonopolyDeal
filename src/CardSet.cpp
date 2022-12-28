@@ -84,4 +84,19 @@ namespace Monopoly
         return m_Hotel != nullptr;
     }
 
+    int CardSet::GetPayValue() const
+    {
+        if (m_Cards.size() == 0)
+        {
+            return 0;
+        }
+
+        auto res = c_RentValues.at(m_Color)[m_Cards.size() - 1];
+        if (IsHasHotel())
+            res += 4;
+        else if (IsHasHouse())
+            res += 3;
+        return res;
+    }
+
 }
