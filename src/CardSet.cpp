@@ -30,6 +30,18 @@ namespace Monopoly
 
     CardContainerElem CardSet::RemoveCard(int index)
     {
+        if (index == m_Cards.size())
+        {
+            auto res = std::move(m_House);
+            m_House = nullptr;
+            return res;
+        }
+        if (index == (m_Cards.size() + 1))
+        {
+            auto res = std::move(m_Hotel);
+            m_Hotel = nullptr;
+            return res;
+        }
         return m_Cards.GetAndErase(index);
     }
 

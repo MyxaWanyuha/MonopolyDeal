@@ -6,11 +6,15 @@
 
 namespace Monopoly
 {
-    using CardIndexesContainer = std::vector<int>;
+    using CardIndicesContainer = std::vector<int>;
     class Player
     {
     public:
         using CardSets = std::vector<CardSet>;
+
+        std::vector<int> GetFullSetsIndices() const;
+        std::vector<int> GetNotFullSetsIndices() const;
+        int GetNotFullSetsCount() const;
 
         size_t GetCountCardsInHand() const { return m_Hand.size(); }
         const CardContainer& GetCardsInHand() const { return m_Hand; }
@@ -23,16 +27,16 @@ namespace Monopoly
         
         CardContainerElem RemoveCardFromHand(const int cardIndex);
         void AddCardsToHand(CardContainer&& cards);
-        CardContainer RemoveCardsFromHand(const CardIndexesContainer& cardIndexes);
+        CardContainer RemoveCardsFromHand(const CardIndicesContainer& cardIndices);
 
         void AddCardToBank(const CardContainerElem& card);
         void AddCardsToBank(CardContainer&& cards);
-        CardContainer RemoveCardsFromBank(const CardIndexesContainer& cardIndexes);
+        CardContainer RemoveCardsFromBank(const CardIndicesContainer& cardIndices);
 
         void AddSet(CardSet&& set);
         CardSet RemoveSet(const int setIndex);
         CardContainerElem RemoveCardFromSet(const int setIndex, const int propertyIndexInSet);
-        CardContainer RemoveCardsFromSet(const int index, const CardIndexesContainer& cardIndexes);
+        CardContainer RemoveCardsFromSet(const int index, const CardIndicesContainer& cardIndices);
         void RemoveHousesHotelsFromIncompleteSets();
 
         void RemoveAllFromBank();

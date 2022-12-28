@@ -32,8 +32,7 @@ public:
             // Game::GetCurrentPlayerAllData();
             // Game::GetOtherPlayersPublicData();
             Game::ETurnOutput turnOutput;
-            do
-            {
+            do {
                 TurnInput turn = InputTurn();
                 turnOutput = Game::Turn(turn.Input, turn.CardIndex, turn.SetIndex);
                 if (turnOutput == Game::ETurnOutput::IncorrectInput)
@@ -50,8 +49,8 @@ public:
             if (extraCards > 0)
             {
                 std::cout << "Player has extra cards: " << extraCards << '\n'
-                    << "Input the indexes of the cards you want to remove: ";
-                Monopoly::CardIndexesContainer container;
+                    << "Input the indices of the cards you want to remove: ";
+                Monopoly::CardIndicesContainer container;
                 container.resize(extraCards);
                 for (int i = 0; i < extraCards; ++i)
                 {
@@ -71,8 +70,8 @@ private:
     {
         std::cout << "Input command:\n1 - pass\n2 - flip\n3 - play\n";
         Game::ETurn turn;
-        while (std::cin >> ((int&)turn))
-        {
+        do {
+            std::cin >> (int&)turn;
             switch (turn)
             {
             case Game::ETurn::Pass:
@@ -97,56 +96,187 @@ private:
             default:
                 std::cerr << "Input is incorrect! Try again:\n";
             }
-        }
+        } while (1);
     }
 
     virtual EActionInput GetActionInput() const override
     {
         std::cout << "What do you want to do with this action card(0 - to bank, 1 - play): ";
-        int input;
+        EActionInput input;
         do {
-            std::cin >> input;
-            if (input != EActionInput::ToBank && input != EActionInput::Play)
+            std::cin >> (int&)input;
+            if (input == EActionInput::ToBank || input == EActionInput::Play)
             {
-                std::cout << "Input is incorrect! Try again:\n";
+                return input;
             }
-            else
-            {
-                break;
-            }
+            std::cout << "Input is incorrect! Try again:\n";
         } while (1);
-        return (EActionInput)input;
     }
 
-    virtual int SelectSetIndex(const std::vector<int>& indexes) const override
+    int SelectIndex(const std::vector<int>& indices, const char* message) const
     {
-        // TODO
-        return 0;
+        if (indices.size() == 1)
+        {
+            return indices[0];
+        }
+
+        int res = -1;
+        do {
+            std::cout << message;
+            for (const auto& index : indices)
+            {
+                std::cout << index << ".\n";
+            }
+            std::cout << "Select index: ";
+            std::cin >> res;
+            if (std::find(indices.begin(), indices.end(), res) == indices.end())
+            {
+                std::cout << "Invalid index!\n";
+                res = -1;
+            }
+        } while (res == -1);
+        return res;
+    }
+    
+    virtual int SelectSetIndex(const std::vector<int>& indices) const override
+    {
+        SelectIndex(indices, "Set indices: \n");
+    }
+
+    int SelectPropertyIndex(const std::vector<int>& indices) const
+    {
+        SelectIndex(indices, "Property indices: \n");
+    }
+
+    void InputVictimIndex(int& victimIndex) const
+    {
+        victimIndex = -1;
+        do {
+            std::cout << "Victim indices: \n";
+            const auto playersCount = Game::GetPlayersCount();
+            for (int i = 0; i < playersCount; ++i)
+            {
+                if (i != Game::GetCurrentPlayerIndex())
+                {
+                    std::cout << i << ".\n";
+                }
+            }
+            std::cout << "Select index: ";
+            std::cin >> victimIndex;
+            if (victimIndex == Game::GetCurrentPlayerIndex() || victimIndex < 0 || victimIndex > Game::GetPlayersCount())
+            {
+                victimIndex = -1;
+                std::cout << "Is invalid index!\n";
+            }
+        } while (victimIndex == -1);
     }
 
     virtual void InputDealBreaker(int& victimIndex, int& setIndex) const override
     {
-        // TODO
+        Monopoly::CardIndicesContainer fullSetIndices;
+        do {
+            InputVictimIndex(victimIndex);
+            fullSetIndices = GetPlayers()[victimIndex].GetFullSetsIndices();
+            if (fullSetIndices.size() == 0)
+            {
+                std::cout << "Invalid index! Victim doesn't have full sets!\n";
+                victimIndex = -1;
+            }
+        } while (victimIndex == -1);
+        setIndex = SelectSetIndex(fullSetIndices);
+    }
+
+    void InputPropertyIndex(const int player, const int setIndex, int& propertyIndexInSet) const
+    {
+        Monopoly::CardIndicesContainer indices;
+        propertyIndexInSet = -1;
+        const auto& set = GetPlayers()[player].GetCardSets()[setIndex];
+        const auto cardsCount = set.GetCards().size();
+        for (int i = 0; i < cardsCount; ++i)
+        {
+            std::cout << i << ".\n";
+            indices.emplace_back(i);
+        }
+        if (set.IsHasHouse())
+        {
+            indices.emplace_back(cardsCount);
+            std::cout << cardsCount << ".\n";
+        }
+        if (set.IsHasHotel())
+        {
+            indices.emplace_back(cardsCount + 1);
+            std::cout << cardsCount + 1 << ".\n";
+        }
+        propertyIndexInSet = SelectPropertyIndex(indices);
     }
 
     virtual void InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet) override
     {
-        // TODO
+        std::vector<int> setIndices;
+        do {
+            InputVictimIndex(victimIndex);
+            setIndices = GetPlayers()[victimIndex].GetNotFullSetsIndices();
+            if (setIndices.size() == 0)
+            {
+                std::cout << "Invalid index! Victim doesn't have full sets!\n";
+                victimIndex = -1;
+            }
+        } while (victimIndex == -1);
+        setIndex = SelectSetIndex(setIndices);
+        InputPropertyIndex(victimIndex, setIndex, propertyIndexInSet);
     }
 
     virtual void InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet) override
     {
-        // TODO
+        InputSlyDeal(victimIndex, victimSetIndex, victimPropertyIndexInSet);
+
+        auto playerIndex = Game::GetCurrentPlayerIndex();
+        auto setIndices = GetPlayers()[playerIndex].GetNotFullSetsIndices();
+        playerSetIndex = SelectSetIndex(setIndices);
+        InputPropertyIndex(playerIndex, playerSetIndex, playerPropertyIndexInSet);
     }
 
     virtual void InputDebtCollector(int& victimIndex) override
     {
+        InputVictimIndex(victimIndex);
+    }
+
+    virtual void InputPay(const int victimIndex, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) override
+    {
         // TODO
     }
 
-    virtual void InputPay(int& notUsed, std::vector<int>& moneyIndexes, std::unordered_map<int, std::vector<int>>& setIndexes) override
+    virtual void InputRentWild(int& victimIndex, int& setIndex) override
+    {
+        InputVictimIndex(victimIndex);
+        const auto playerIndex = Game::GetCurrentPlayerIndex();
+        const auto setsCount = Game::GetPlayers()[playerIndex].GetCardSets().size();
+        std::vector<int> setIndices;
+        setIndices.resize(setsCount);
+        for (int i = 0; i < setsCount; ++i)
+            setIndices[i] = i;
+        setIndex = SelectSetIndex(setIndices);
+    }
+
+    virtual void InputRentTwoColors(int& setIndex) override
     {
         // TODO
+    }
+
+    virtual bool InputUseJustSayNo(const int victimIndex) const override
+    {
+        std::cout << "Do you want use JastSayNo card?\n"
+                  << "1 - yes\n" << "0 - no\n";
+        int input = -1;
+        do {
+            std::cout << ": ";
+            std::cin >> input;
+            if (input == 0 || input == 1)
+            {
+                return static_cast<bool>(input);
+            }
+            std::cout << "Incorrect input!\n";
+        } while (input == -1);
     }
 
 };

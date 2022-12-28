@@ -47,6 +47,22 @@ namespace Monopoly
         None
     };
 
+    const static std::unordered_map<std::string_view, EColor> c_ColorStrToEnum =
+    {
+        {"Yellow", EColor::Yellow},
+        {"Utility", EColor::Utility},
+        {"Brown", EColor::Brown},
+        {"Blue", EColor::Blue},
+        {"Green", EColor::Green},
+        {"LightBlue", EColor::LightBlue},
+        {"Orange", EColor::Orange},
+        {"Pink", EColor::Pink},
+        {"Railroad", EColor::Railroad},
+        {"Red", EColor::Red},
+        {"Wild", EColor::All},
+        {"None", EColor::None}
+    };
+
     enum class ECardType
     {
         None = 0,
@@ -68,6 +84,7 @@ namespace Monopoly
         virtual uint32_t GetValue() const = 0;
         virtual EColor GetColor1() const { return EColor::None; }
         virtual EColor GetColor2() const { return EColor::None; }
+        virtual EColor SwapColor() { return EColor::None; }
     private:
         std::string m_Name;
     };
@@ -86,6 +103,28 @@ namespace Monopoly
         uint32_t m_Value = 0;
     };
 
+    class PropertyCard : public MoneyCard
+    {
+    public:
+        PropertyCard(const std::string& name, uint32_t value, const EColor color1, const EColor color2 = EColor::None)
+            : MoneyCard(name, value), m_CurrentColor(color1), m_UnusedColor(color2)
+        {
+        }
+        virtual ECardType GetType() const override { return ECardType::Property; }
+        virtual EColor GetColor1() const { return m_CurrentColor; }
+        virtual EColor GetColor2() const { return m_UnusedColor; }
+        virtual EColor SwapColor() override
+        {
+            if (m_UnusedColor != EColor::None)
+            {
+                std::swap(m_CurrentColor, m_UnusedColor);
+            }
+            return m_CurrentColor;
+        }
+    private:
+        EColor m_CurrentColor, m_UnusedColor;
+    };
+    
     class ActionCard : public MoneyCard
     {
     public:
@@ -100,9 +139,11 @@ namespace Monopoly
     };
 
 #define ActionCardClass(Type_) \
-    class Type_ : public ActionCard \
+    class Type_##Card : public ActionCard \
     { \
     public: \
+        Type_##Card(const std::string& name, uint32_t value) \
+            : ActionCard(name, value) {} \
         virtual EActionType GetActionType() const override { return EActionType::Type_; } \
     }; \
 
@@ -123,7 +164,7 @@ namespace Monopoly
     class Type_ : public ActionCard \
     { \
     public: \
-        Type_(const std::string& name, uint32_t value, EColor color1, EColor color2) \
+        Type_(const std::string& name, uint32_t value) \
             : ActionCard(name, value) { } \
         virtual EActionType GetActionType() const override { return EActionType::Type_; } \
         virtual EColor GetColor1() const override { return Color1_; } \

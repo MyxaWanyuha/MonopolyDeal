@@ -17,49 +17,89 @@ namespace Monopoly
 
     Game::Game()
     {
-        //std::ifstream file("cardList.csv");
-        //if (!file.is_open())
-        //{
-        //    std::cerr << "Couldn't find a file!\n";
-        //    exit(1);
-        //}
-        //CSVRow row;
-        //file >> row;// skip first row
-        //const int rowsWithCardsCount = 58;
-        //for (int i = 0; i < rowsWithCardsCount; ++i)
-        //{
-        //    if (!(file >> row))
-        //    {
-        //        std::cerr << "Can't read file!\n";
-        //        exit(2);
-        //    }
-        //    assert(row.size() == 7);
+        std::ifstream file("cardList.csv");
+        if (!file.is_open())
+        {
+            std::cerr << "Couldn't find a file!\n";
+            exit(1);
+        }
+        CSVRow row;
+        file >> row;// skip first row
+        const int rowsWithCardsCount = 58;
+        for (int i = 0; i < rowsWithCardsCount; ++i)
+        {
+            if (!(file >> row))
+            {
+                std::cerr << "Can't read file!\n";
+                exit(2);
+            }
+            assert(row.size() == 7);
 
-        //    auto to_int = [](const std::string_view& input)
-        //    {
-        //        int out;
-        //        const std::from_chars_result result = std::from_chars(input.data(), input.data() + input.size(), out);
-        //        if (result.ec == std::errc::invalid_argument || result.ec == std::errc::result_out_of_range)
-        //        {
-        //            std::cerr << "Can't read integer in file!\n";
-        //            exit(3);
-        //        }
-        //        return out;
-        //    };
+            auto to_int = [](const std::string_view& input)
+            {
+                int out;
+                const std::from_chars_result result = std::from_chars(input.data(), input.data() + input.size(), out);
+                if (result.ec == std::errc::invalid_argument || result.ec == std::errc::result_out_of_range)
+                {
+                    std::cerr << "Can't read integer in file!\n";
+                    exit(3);
+                }
+                return out;
+            };
 
-        //    const std::string name(row[0]);
-        //    const auto cardType = FindByValue(CardTypeStrings, row[1]);
-        //    const int value = to_int(row[2]);
-        //    const int count = to_int(row[3]);
-        //    const auto color = FindByValue(ColorStrings, row[4]);
-        //    const auto secondColor = FindByValue(ColorStrings, row[5]);
-        //    const auto actionType = FindByValue(ActionTypeStrings, row[6]);
-        //    for (int j = 0; j < count; ++j)
-        //    {
-        //        m_Deck.push_front(Card(name, cardType, value, color, secondColor, actionType));
-        //    }
-        //     TODO
-        //}
+            const std::string name(row[0]);
+            const auto& cardType = row[1];
+            const int count = to_int(row[3]);
+            const int value = to_int(row[2]);
+            if (cardType == "Action")
+            {
+                const auto& actionType = row[6];
+                if (actionType == "PassGo")
+                    InitDeck<PassGoCard>(count, name, value);
+                else if (actionType == "DoubleTheRent")
+                    InitDeck<DoubleTheRentCard>(count, name, value);
+                else if (actionType == "JustSayNo")
+                    InitDeck<JustSayNoCard>(count, name, value);
+                else if (actionType == "Hotel")
+                    InitDeck<HotelCard>(count, name, value);
+                else if (actionType == "House")
+                    InitDeck<HouseCard>(count, name, value);
+                else if (actionType == "DealBreaker")
+                    InitDeck<DealBreakerCard>(count, name, value);
+                else if (actionType == "SlyDeal")
+                    InitDeck<SlyDealCard>(count, name, value);
+                else if (actionType == "ForcedDeal")
+                    InitDeck<ForcedDealCard>(count, name, value);
+                else if (actionType == "ItsMyBirthday")
+                    InitDeck<ItsMyBirthdayCard>(count, name, value);
+                else if (actionType == "DebtCollector")
+                    InitDeck<DebtCollectorCard>(count, name, value);
+                else if (actionType == "RentWild")
+                    InitDeck<RentWildCard>(count, name, value);
+                else if (actionType == "RentLightBlueBrown")
+                    InitDeck<RentLightBlueBrown>(count, name, value);
+                else if (actionType == "RentOrangePink")
+                    InitDeck<RentWildCard>(count, name, value);
+                else if (actionType == "RentYellowRed")
+                    InitDeck<RentWildCard>(count, name, value);
+                else if (actionType == "RentUtilityRailroad")
+                    InitDeck<RentWildCard>(count, name, value);
+                else if (actionType == "RentBlueGreen")
+                    InitDeck<RentWildCard>(count, name, value);
+            }
+            else if (cardType == "Money")
+            {
+                InitDeck<MoneyCard>(count, name, value);
+            }
+            else if (cardType == "Property")
+            {
+                auto color1 = c_ColorStrToEnum.at(row[4]);
+                auto color2 = c_ColorStrToEnum.at(row[5]);
+                for (int i = 0; i < count; ++i)
+                    m_Deck.push_front(std::make_shared<PropertyCard>(name, value, color1, color2));
+            }
+        }
+
         assert(m_Deck.size() == 106);// all cards readed
         std::shuffle(m_Deck.begin(), m_Deck.end(), std::default_random_engine(seed));
     }
@@ -98,23 +138,28 @@ namespace Monopoly
         case ETurn::Pass:
             return ETurnOutput::NextPlayer;
         case ETurn::FlipCard:
-            // TODO Check if has flip card
-            // add to set or make new set
-            // else
+        {
+            auto card = currentPlayer.RemoveCardFromSet(setIndex, cardIndex);
+            if (!card || card->SwapColor() != EColor::None)
+            {
+                return ETurnOutput::CardProcessed;
+            }
             return ETurnOutput::IncorrectIndex;
-            break;
+        }
         case ETurn::PlayCard:
         {
             auto card = currentPlayer.RemoveCardFromHand(cardIndex);
-            switch (card->GetType())
+            auto type = card->GetType();
+            if (type == ECardType::Money)
             {
-            case ECardType::Money:
                 currentPlayer.AddCardToBank(card);
-                break;
-            case ECardType::Property:
+            }
+            else if (type == ECardType::Property)
+            {
                 currentPlayer.AddProperty(card);
-                break;
-            case ECardType::Action:
+            }
+            else if (type == ECardType::Action)
+            {
                 if (GetActionInput() == EActionInput::ToBank)
                 {
                     currentPlayer.AddCardToBank(card);
@@ -122,15 +167,14 @@ namespace Monopoly
                 else
                 {
                     auto res = ProcessActionCard(currentPlayer, card);
-                    if(res != ETurnOutput::CardProcessed)
+                    if (res != ETurnOutput::CardProcessed)
                     {
                         return res;
                     }
                 }
-                break;
             }
-        }
             break;
+        }
         default:
             return ETurnOutput::IncorrectInput;
         }
@@ -188,9 +232,9 @@ namespace Monopoly
         return extraCardsCount > 0 ? extraCardsCount : 0;
     }
 
-    void Game::RemoveExtraCards(const CardIndexesContainer& extraCardsIndexes)
+    void Game::RemoveExtraCards(const CardIndicesContainer& extraCardsIndices)
     {
-        m_Players[m_CurrentPlayerIndex].RemoveCardsFromHand(extraCardsIndexes);
+        m_Players[m_CurrentPlayerIndex].RemoveCardsFromHand(extraCardsIndices);
     }
 
     void Game::EndTurn()
@@ -208,6 +252,12 @@ namespace Monopoly
             m_Deck.pop_back();
         }
         player.AddCardsToHand(std::move(cards));
+    }
+
+    Game::ETurnOutput Game::FlipCard(Player & currentPlayer, CardContainerElem & card)
+    {
+
+        return ETurnOutput();
     }
 
     json Game::GetAllData() const
@@ -231,7 +281,7 @@ namespace Monopoly
 
     Game::ETurnOutput Game::Enhancement(Player& player, const CardContainerElem& card)
     {
-        std::vector<int> setsIndexes;
+        std::vector<int> setsIndices;
         const auto& sets = player.GetCardSets();
         for (int i = 0; i < sets.size(); ++i)
         {
@@ -239,17 +289,17 @@ namespace Monopoly
             const auto isHasEnhancement = card->GetActionType() == EActionType::House ? sets[i].IsHasHouse() : sets[i].IsHasHotel();
             if (color != EColor::Railroad && color != EColor::Utility && isHasEnhancement == false)
             {
-                setsIndexes.emplace_back(i);
+                setsIndices.emplace_back(i);
             }
         }
 
-        if (setsIndexes.size() == 0)
+        if (setsIndices.size() == 0)
         {
             return ETurnOutput::IncorrectCard;
         }
 
-        auto index = SelectSetIndex(setsIndexes);
-        if (std::find(setsIndexes.begin(), setsIndexes.end(), index) == setsIndexes.end())
+        auto index = SelectSetIndex(setsIndices);
+        if (std::find(setsIndices.begin(), setsIndices.end(), index) == setsIndices.end())
         {
             return ETurnOutput::IncorrectIndex;
         }
@@ -292,6 +342,8 @@ namespace Monopoly
     Game::ETurnOutput Game::ForcedDeal(Player& player, const CardContainerElem& card)
     {
         int victimIndex, victimSetIndex, victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet;
+        if(player.GetNotFullSetsCount() == 0)
+            return ETurnOutput::IncorrectCard;
         InputForcedDeal(victimIndex, victimSetIndex, victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet);
 
         if (m_Players[victimIndex].GetCardSets()[victimIndex].IsFull() || m_Players[victimIndex].GetCardSets()[playerSetIndex].IsFull())
@@ -408,15 +460,14 @@ namespace Monopoly
         }
         else
         {
-            int notUsed;
-            std::vector<int> moneyIndexes;
-            std::unordered_map<int, std::vector<int>> setIndexes;
-            InputPay(notUsed, moneyIndexes, setIndexes);
+            std::vector<int> moneyIndices;
+            std::unordered_map<int, std::vector<int>> setIndices;
+            InputPay(victimIndex, moneyIndices, setIndices);
             {
-                auto money = m_Players[victimIndex].RemoveCardsFromBank(moneyIndexes);
+                auto money = m_Players[victimIndex].RemoveCardsFromBank(moneyIndices);
                 m_Players[m_CurrentPlayerIndex].AddCardsToBank(std::move(money));
             }
-            for (const auto& set : setIndexes)
+            for (const auto& set : setIndices)
             {
                 auto properties = m_Players[victimIndex].RemoveCardsFromSet(set.first, set.second);
                 for (const auto& card : properties)

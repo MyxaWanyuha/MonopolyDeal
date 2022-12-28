@@ -3,6 +3,37 @@
 
 namespace Monopoly
 {
+    std::vector<int> Player::GetFullSetsIndices() const
+    {
+        std::vector<int> res;
+        for (int i = 0; i < m_CardSets.size(); ++i)
+        {
+            if (m_CardSets[i].IsFull())
+                res.emplace_back(i);
+        }
+        return res;
+    }
+
+    std::vector<int> Player::GetNotFullSetsIndices() const
+    {
+        std::vector<int> res;
+        for (int i = 0; i < m_CardSets.size(); ++i)
+        {
+            if (!m_CardSets[i].IsFull())
+                res.emplace_back(i);
+        }
+        return res;
+    }
+
+    int Player::GetNotFullSetsCount() const
+    {
+        int res = 0;
+        for (int i = 0; i < m_CardSets.size(); ++i)
+        {
+            res += static_cast<int>(!m_CardSets[i].IsFull());
+        }
+        return res;
+    }
 
     int Player::GetIndexJustSayNo() const
     {
@@ -67,7 +98,7 @@ namespace Monopoly
         return m_CardSets[setIndex].RemoveCard(propertyIndexInSet);
     }
 
-    CardContainer Player::RemoveCardsFromSet(const int index, const CardIndexesContainer& cardIndexes)
+    CardContainer Player::RemoveCardsFromSet(const int index, const CardIndicesContainer& cardIndices)
     {
         // TODO
         // Check Wild Property with value == 0
@@ -80,7 +111,7 @@ namespace Monopoly
         // ≈сли платитьс€ проперти этого сета, то дом или отель кладутс€ р€дом, пока не соберетс€ новый полный сет, также их можно украсть с помощью SlyDeal ForcedDeal
     }
 
-    CardContainer Player::RemoveCardsFromHand(const CardIndexesContainer& cardIndexes)
+    CardContainer Player::RemoveCardsFromHand(const CardIndicesContainer& cardIndices)
     {
         // TODO
         return CardContainer();
@@ -101,7 +132,7 @@ namespace Monopoly
         m_Bank.emplace_back(card);
     }
 
-    CardContainer Player::RemoveCardsFromBank(const CardIndexesContainer& cardIndexes)
+    CardContainer Player::RemoveCardsFromBank(const CardIndicesContainer& cardIndices)
     {
         // TODO
         return CardContainer();
