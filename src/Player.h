@@ -20,16 +20,26 @@ namespace Monopoly
         int GetIndexJustSayNo() const;
         bool AddHouseToCardSet(int setIndex, const CardContainerElem& card);
         bool AddHotelToCardSet(int setIndex, const CardContainerElem& card);
+        
+        CardContainerElem RemoveCardFromHand(const int cardIndex);
         void AddCardsToHand(CardContainer&& cards);
+        CardContainer RemoveCardsFromHand(const CardIndexesContainer& cardIndexes);
+
+        void AddCardToBank(const CardContainerElem& card);
+        void AddCardsToBank(CardContainer&& cards);
+        CardContainer RemoveCardsFromBank(const CardIndexesContainer& cardIndexes);
 
         void AddSet(CardSet&& set);
         CardSet RemoveSet(const int setIndex);
         CardContainerElem RemoveCardFromSet(const int setIndex, const int propertyIndexInSet);
+        CardContainer RemoveCardsFromSet(const int index, const CardIndexesContainer& cardIndexes);
+        void RemoveHousesHotelsFromIncompleteSets();
 
-        CardContainer RemoveCardsFromHand(const CardIndexesContainer& cardIndexes);
-        CardContainerElem RemoveCardFromHand(const int cardIndex);
-        void AddCardToBank(const CardContainerElem& card);
+        void RemoveAllFromBank();
         void AddProperty(const CardContainerElem& card);
+        void RemoveProperties();
+
+        int CountBankAndPropertiesValues() const;
     private:
         CardContainer m_Bank;
         CardContainer m_Hand;

@@ -311,6 +311,30 @@ namespace Monopoly
         return ETurnOutput::CardProcessed;
     }
 
+    Game::ETurnOutput Game::ItsMyBirthday(Player& player, const CardContainerElem& card)
+    {
+        for (int i = 0; i < m_Players.size(); ++i)
+        {
+            if (i != m_CurrentPlayerIndex && !JustSayNo(i, m_CurrentPlayerIndex))
+            {
+                Pay(i, c_ItsMyBirthdayAmount);
+            }
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
+    Game::ETurnOutput Game::DebtCollector(Player& player, const CardContainerElem& card)
+    {
+        int victimIndex;
+        InputDebtCollector(victimIndex);
+
+        if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
+        {
+            Pay(victimIndex, c_DebtCollectorAmount);
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
     bool Game::JustSayNo(const int victimIndex, const int instigatorIndex)
     {
         auto i = m_Players[victimIndex].GetIndexJustSayNo();
@@ -320,5 +344,50 @@ namespace Monopoly
             return !JustSayNo(instigatorIndex, victimIndex);
         }
         return false;
+    }
+    
+    void Game::Pay(int victimIndex, int amount)
+    {
+        int allMoney = m_Players[victimIndex].CountBankAndPropertiesValues();
+        if (allMoney < amount)
+        {
+            const auto& bank = m_Players[victimIndex].GetCardsInBank();
+            for (const auto& card : bank)
+            {
+                m_Players[m_CurrentPlayerIndex].AddCardToBank(card);
+            }
+            m_Players[victimIndex].RemoveAllFromBank();
+
+            const auto& sets = m_Players[victimIndex].GetCardSets();
+            for (const auto& set : sets)
+            {
+                const auto& cards = set.GetCards();
+                for (const auto& card : cards)
+                {
+                    m_Players[m_CurrentPlayerIndex].AddProperty(card);
+                }
+            }
+            m_Players[victimIndex].RemoveProperties();
+        }
+        else
+        {
+            int notUsed;
+            std::vector<int> moneyIndexes;
+            std::unordered_map<int, std::vector<int>> setIndexes;
+            InputPay(notUsed, moneyIndexes, setIndexes);
+            {
+                auto money = m_Players[victimIndex].RemoveCardsFromBank(moneyIndexes);
+                m_Players[m_CurrentPlayerIndex].AddCardsToBank(std::move(money));
+            }
+            for (const auto& set : setIndexes)
+            {
+                auto properties = m_Players[victimIndex].RemoveCardsFromSet(set.first, set.second);
+                for (const auto& card : properties)
+                {
+                    m_Players[m_CurrentPlayerIndex].AddProperty(card);
+                }
+            }
+            m_Players[victimIndex].RemoveHousesHotelsFromIncompleteSets();
+        }
     }
 }

@@ -45,6 +45,11 @@ namespace Monopoly
         // TestOnly
     }
 
+    void Player::AddCardsToBank(CardContainer&& cards)
+    {
+        m_Bank.splice(m_Bank.end(), cards);
+    }
+
     void Player::AddSet(CardSet&& set)
     {
         m_CardSets.emplace_back(set);
@@ -62,6 +67,18 @@ namespace Monopoly
         return m_CardSets[setIndex].RemoveCard(propertyIndexInSet);
     }
 
+    CardContainer Player::RemoveCardsFromSet(const int index, const CardIndexesContainer& cardIndexes)
+    {
+        // TODO
+        return CardContainer();
+    }
+
+    void Player::RemoveHousesHotelsFromIncompleteSets()
+    {
+        // TODO
+        // ≈сли платитьс€ проперти этого сета, то дом или отель кладутс€ р€дом, пока не соберетс€ новый полный сет, также их можно украсть с помощью SlyDeal ForcedDeal
+    }
+
     CardContainer Player::RemoveCardsFromHand(const CardIndexesContainer& cardIndexes)
     {
         // TODO
@@ -73,15 +90,53 @@ namespace Monopoly
         return m_Hand.GetAndErase(cardIndex);
     }
 
+    void Player::RemoveAllFromBank()
+    {
+        m_Bank.clear();
+    }
+
     void Player::AddCardToBank(const CardContainerElem& card)
     {
         m_Bank.emplace_back(card);
     }
 
+    CardContainer Player::RemoveCardsFromBank(const CardIndexesContainer& cardIndexes)
+    {
+        // TODO
+        return CardContainer();
+    }
+
+
     void Player::AddProperty(const CardContainerElem& card)
     {
         //TODO
         // add to set or create new set
+    }
+
+    void Player::RemoveProperties()
+    {
+        m_CardSets.clear();
+    }
+
+    int Player::CountBankAndPropertiesValues() const
+    {
+        int res = 0;
+        const auto& bank = GetCardsInBank();
+        for (const auto& card : bank)
+        {
+            res += card->GetValue();
+        }
+
+        const auto& sets = GetCardSets();
+        for (const auto& set : sets)
+        {
+            const auto& cards = set.GetCards();
+            for (const auto& card : cards)
+            {
+                res += card->GetValue();
+            }
+        }
+        return res;
     }
 
 }

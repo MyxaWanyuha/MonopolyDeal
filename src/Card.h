@@ -65,6 +65,7 @@ namespace Monopoly
         const std::string& GetName() const { return m_Name; }
         virtual ECardType GetType() const = 0;
         virtual EActionType GetActionType() const = 0;
+        virtual uint32_t GetValue() const = 0;
     private:
         std::string m_Name;
     };
@@ -79,7 +80,7 @@ namespace Monopoly
 
         virtual ECardType GetType() const override { return ECardType::Money; }
         virtual EActionType GetActionType() const { return EActionType::None; }
-        uint32_t GetValue() const { return m_Value; }
+        virtual uint32_t GetValue() const override { return m_Value; }
     private:
         uint32_t m_Value = 0;
     };
