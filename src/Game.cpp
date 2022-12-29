@@ -132,6 +132,7 @@ namespace Monopoly
 
     Game::ETurnOutput Game::Turn(const ETurn input, const int cardIndex, const int setIndex)
     {
+        //TODO check winner
         auto& currentPlayer = m_Players[m_CurrentPlayerIndex];
         switch (input)
         {
@@ -142,6 +143,7 @@ namespace Monopoly
             auto card = currentPlayer.RemoveCardFromSet(setIndex, cardIndex);
             if (!card || card->SwapColor() != EColor::None)
             {
+                currentPlayer.AddProperty(card);
                 return ETurnOutput::CardProcessed;
             }
             return ETurnOutput::IncorrectIndex;
@@ -175,6 +177,8 @@ namespace Monopoly
             }
             break;
         }
+        case ETurn::HouseHotelOnTable:
+            return MoveHouseOrHotelFromTableToSet(currentPlayer);
         default:
             return ETurnOutput::IncorrectInput;
         }
@@ -183,6 +187,58 @@ namespace Monopoly
         if (m_CurrentPlayerTurnCounter <= 0)
         {
             return ETurnOutput::NextPlayer;
+        }
+        return ETurnOutput::CardProcessed;
+    }
+
+    Game::ETurnOutput Game::MoveHouseOrHotelFromTableToSet(Player& currentPlayer)
+    {
+        std::vector<int> emptyHouseSetsIndexes;
+        std::vector<int> emptyHotelSetsIndexes;
+        std::vector<int> fullSetsWithoutHouseIndexes;
+        std::vector<int> fullSetsWithoutHotelsIndexes;
+        for (int i = 0; i < currentPlayer.GetCardSets().size(); ++i)
+        {
+            const auto& set = currentPlayer.GetCardSets()[i];
+            if (set.GetCards().size() == 0)
+            {
+                if (set.IsHasHouse())
+                    emptyHouseSetsIndexes.emplace_back(i);
+                else if (set.IsHasHotel())
+                    emptyHotelSetsIndexes.emplace_back(i);
+            }
+            else if (set.IsFull())
+            {
+                if (!set.IsHasHouse())
+                    fullSetsWithoutHouseIndexes.emplace_back(i);
+                else if (!set.IsHasHotel())
+                    fullSetsWithoutHotelsIndexes.emplace_back(i);
+            }
+        }
+
+        if ((emptyHouseSetsIndexes.size() != 0 && fullSetsWithoutHouseIndexes.size() != 0) || (emptyHotelSetsIndexes.size() != 0 && fullSetsWithoutHotelsIndexes.size() != 0))
+        {
+            int emptyIndex, setIndex;
+            InputMoveHouseHotelFromTableToFullSet(emptyHouseSetsIndexes, emptyHotelSetsIndexes,
+                fullSetsWithoutHouseIndexes, fullSetsWithoutHotelsIndexes, emptyIndex, setIndex);
+
+            auto emptySet = currentPlayer.GetCardSets()[emptyIndex];
+            CardContainerElem card;
+            if (emptySet.IsHasHouse())
+            {
+                card = emptySet.RemoveCard(emptySet.GetCards().size());
+                currentPlayer.AddHouseToCardSet(setIndex, card);
+            }
+            else
+            {
+                card = emptySet.RemoveCard(emptySet.GetCards().size() + 1);
+                currentPlayer.AddHotelToCardSet(setIndex, card);
+            }
+            currentPlayer.RemoveSet(emptyIndex);
+        }
+        else
+        {
+            return ETurnOutput::IncorrectInput;
         }
         return ETurnOutput::CardProcessed;
     }
@@ -456,7 +512,7 @@ namespace Monopoly
                     m_Players[m_CurrentPlayerIndex].AddProperty(card);
                 }
             }
-            m_Players[victimIndex].RemoveProperties();
+            m_Players[victimIndex].RemoveSets();
         }
         else
         {
@@ -469,7 +525,7 @@ namespace Monopoly
             }
             for (const auto& set : setIndices)
             {
-                auto properties = m_Players[victimIndex].RemoveCardsFromSet(set.first, set.second);
+                auto properties = m_Players[victimIndex].RemoveCardsWithValueNotZeroFromSet(set.first, set.second);
                 for (const auto& card : properties)
                 {
                     m_Players[m_CurrentPlayerIndex].AddProperty(card);

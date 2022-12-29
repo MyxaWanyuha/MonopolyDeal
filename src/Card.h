@@ -82,7 +82,7 @@ namespace Monopoly
         virtual ECardType GetType() const = 0;
         virtual EActionType GetActionType() const { return EActionType::None; }
         virtual uint32_t GetValue() const = 0;
-        virtual EColor GetColor1() const { return EColor::None; }
+        virtual EColor GetCurrentColor() const { return EColor::None; }
         virtual EColor GetColor2() const { return EColor::None; }
         virtual EColor SwapColor() { return EColor::None; }
     private:
@@ -111,7 +111,7 @@ namespace Monopoly
         {
         }
         virtual ECardType GetType() const override { return ECardType::Property; }
-        virtual EColor GetColor1() const { return m_CurrentColor; }
+        virtual EColor GetCurrentColor() const { return m_CurrentColor; }
         virtual EColor GetColor2() const { return m_UnusedColor; }
         virtual EColor SwapColor() override
         {
@@ -167,7 +167,7 @@ namespace Monopoly
         Type_(const std::string& name, uint32_t value) \
             : ActionCard(name, value) { } \
         virtual EActionType GetActionType() const override { return EActionType::Type_; } \
-        virtual EColor GetColor1() const override { return Color1_; } \
+        virtual EColor GetCurrentColor() const override { return Color1_; } \
         virtual EColor GetColor2() const override { return Color2_; } \
     }; \
 

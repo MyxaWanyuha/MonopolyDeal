@@ -11,7 +11,6 @@ namespace Monopoly
     {
     public:
         using CardSets = std::vector<CardSet>;
-
         std::vector<int> GetFullSetsIndices() const;
         std::vector<int> GetNotFullSetsIndices() const;
         int GetNotFullSetsCount() const;
@@ -35,13 +34,13 @@ namespace Monopoly
 
         void AddSet(CardSet&& set);
         CardSet RemoveSet(const int setIndex);
-        CardContainerElem RemoveCardFromSet(const int setIndex, const int propertyIndexInSet);
-        CardContainer RemoveCardsFromSet(const int index, const CardIndicesContainer& cardIndices);
+        CardContainerElem RemoveCardFromSet(const int setIndex, const int cardIndex);
+        CardContainer RemoveCardsWithValueNotZeroFromSet(const int setIndex, const CardIndicesContainer& cardIndices);
         void RemoveHousesHotelsFromIncompleteSets();
 
         void RemoveAllFromBank();
         void AddProperty(const CardContainerElem& card);
-        void RemoveProperties();
+        void RemoveSets();
 
         int CountBankAndPropertiesValues() const;
 
@@ -49,6 +48,7 @@ namespace Monopoly
         const static int InvalidIndex = -1;
         const static int ValueLessThanAmount = -2;
     private:
+
         CardContainer m_Bank;
         CardContainer m_Hand;
         CardSets m_CardSets;

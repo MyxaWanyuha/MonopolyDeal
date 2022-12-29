@@ -12,6 +12,7 @@ class Game
 {
     static const uint32_t c_MinPlayersCount = 2;
     static const uint32_t c_MaxPlayersCount = 5;
+    static const int c_FullSetsCountForWin = 3;
     static const int c_StartCardsCount = 5;
     static const int c_TurnCardsCount = 3;
     static const int c_PassGoCardsCount = 2;
@@ -31,7 +32,8 @@ protected:
     {
         Pass = 1,
         FlipCard = 2,
-        PlayCard = 3
+        PlayCard = 3,
+        HouseHotelOnTable = 4
     };
     enum class ETurnOutput
     {
@@ -44,6 +46,7 @@ protected:
 
     void BeginTurn();
     ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);
+    Monopoly::Game::ETurnOutput MoveHouseOrHotelFromTableToSet(Monopoly::Player& currentPlayer);
     int GetExtraCardsCount() const;
     void RemoveExtraCards(const CardIndicesContainer& extraCardsIndices);
     void EndTurn();
@@ -63,7 +66,13 @@ protected:
     virtual void InputPay(const int notUsed, const int amount, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) = 0;
     virtual void InputRentWild(int& victimIndex, int& setIndex) = 0;
     virtual void virtual InputRentTwoColors(int& setIndex) = 0;
-
+    virtual void virtual InputMoveHouseHotelFromTableToFullSet(
+        const std::vector<int>& emptyHouseSetsIndexes,
+        const std::vector<int>& emptyHotelSetsIndexes,
+        const std::vector<int>& fullSetsWithoutHouseIndexes,
+        const std::vector<int>& fullSetsWithoutHotelsIndexes,
+        int& emptyIndex, int& setIndex) = 0;
+    
     virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
 
     json GetAllData() const;

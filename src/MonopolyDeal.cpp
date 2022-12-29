@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include "Game.h"
+
 class ConsoleGame : protected Monopoly::Game
 {
     struct TurnInput
@@ -398,6 +399,21 @@ private:
             std::cout << "Incorrect input!\n";
             input = -1;
         } while (input == -1);
+    }
+
+    virtual void InputMoveHouseHotelFromTableToFullSet(const std::vector<int>& emptyHouseSetsIndexes, const std::vector<int>& emptyHotelSetsIndexes,
+        const std::vector<int>& fullSetsWithoutHouseIndexes, const std::vector<int>& fullSetsWithoutHotelsIndexes, int& emptyIndex, int& setIndex) override
+    {
+        if (emptyHouseSetsIndexes.size() != 0 && fullSetsWithoutHouseIndexes.size() != 0)
+        {
+            emptyIndex = SelectIndex(emptyHouseSetsIndexes, "Select the house you want to add to: \n");
+            setIndex = SelectIndex(fullSetsWithoutHouseIndexes, "Select the set you want to add house: \n");
+        }
+        else
+        {
+            emptyIndex = SelectIndex(emptyHotelSetsIndexes, "Select the hotel you want to add to: \n");
+            setIndex = SelectIndex(fullSetsWithoutHotelsIndexes, "Select the set you want to add hotel: \n");
+        }
     }
 
 };

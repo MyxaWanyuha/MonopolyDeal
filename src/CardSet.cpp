@@ -16,16 +16,24 @@ namespace Monopoly
         { EColor::Red,          { 2, 3, 6 } }
     };
 
-    CardSet::CardSet(EColor color)
-        : m_Color(color)
+    CardSet::CardSet(const CardContainerElem& card)
+        : m_Color(card->GetCurrentColor())
     {
+        if (card->GetType() == ECardType::Property)
+        {
+            AddProperty(card);
+        }
+        const bool isEnhancement = AddHouse(card) || AddHotel(card);
+        assert(isEnhancement);
     }
 
-    void CardSet::AddCard(const CardContainerElem& card)
+    void CardSet::AddProperty(const CardContainerElem& card)
     {
-        // TODO
-        // check is full
-        m_Cards.push_back(card);
+        if (card->GetType() == ECardType::Property)
+        {
+            assert(m_Cards.size() < c_RentValues.at(m_Color).size());
+            m_Cards.push_back(card);
+        }
     }
 
     CardContainerElem CardSet::RemoveCard(int index)
@@ -43,6 +51,23 @@ namespace Monopoly
             return res;
         }
         return m_Cards.GetAndErase(index);
+    }
+
+    CardContainer CardSet::RemoveCardsWithValueNotZero(const std::vector<int>& cardIndices)
+    {
+        CardContainer cards;
+        for (const auto& i : cardIndices)
+        {
+            auto it = m_Cards.begin();
+            std::advance(it, i);
+            if ((*it)->GetValue() != 0)
+            {
+                cards.emplace_back(*it);
+                *it = nullptr;
+            }
+        }
+        m_Cards.remove(nullptr);
+        return cards;
     }
 
     json CardSet::ToJSON() const

@@ -34,17 +34,32 @@ namespace Monopoly
             }
             return -1;
         }
+
+        CardContainer RemoveCards(const std::vector<int>& cardIndices)
+        {
+            CardContainer cards;
+            for (const auto& i : cardIndices)
+            {
+                auto it = begin();
+                std::advance(it, i);
+                cards.emplace_back(*it);
+                *it = nullptr;
+            }
+            remove(nullptr);
+            return cards;
+        }
     };
 
     class CardSet
     {
     public:
-        CardSet(EColor color);
+        CardSet(const CardContainerElem& card);
         const CardContainer& GetCards() const { return m_Cards; }
-        void AddCard(const CardContainerElem& card);
-
+        void AddProperty(const CardContainerElem& card);
+        bool IsEmpty() const { return !IsHasHouse() && !IsHasHotel() && m_Cards.size() == 0; }
         // GetCards().size() is index of House, GetCards().size() + 1 is index of Hotel 
         CardContainerElem RemoveCard(int index);
+        CardContainer RemoveCardsWithValueNotZero(const std::vector<int>& cardIndices);
         json ToJSON() const;
         EColor GetColor() const;
         bool IsFull() const;
@@ -53,6 +68,7 @@ namespace Monopoly
         bool IsHasHouse() const;
         bool IsHasHotel() const;
         int GetPayValue() const;
+
     private:
         CardContainer m_Cards;
         CardContainerElem m_House = nullptr;

@@ -3,6 +3,7 @@
 
 namespace Monopoly
 {
+
     std::vector<int> Player::GetFullSetsIndices() const
     {
         std::vector<int> res;
@@ -93,28 +94,44 @@ namespace Monopoly
         return res;
     }
 
-    CardContainerElem Player::RemoveCardFromSet(const int setIndex, const int propertyIndexInSet)
+    CardContainerElem Player::RemoveCardFromSet(const int setIndex, const int cardIndex)
     {
-        return m_CardSets[setIndex].RemoveCard(propertyIndexInSet);
+        auto res = m_CardSets[setIndex].RemoveCard(cardIndex);
+        if (m_CardSets[setIndex].IsEmpty())
+        {
+            m_CardSets.erase(m_CardSets.begin() + setIndex);
+        }
+        return res;
     }
 
-    CardContainer Player::RemoveCardsFromSet(const int index, const CardIndicesContainer& cardIndices)
+    CardContainer Player::RemoveCardsWithValueNotZeroFromSet(const int setIndex, const CardIndicesContainer& cardIndices)
     {
-        // TODO
-        // Check Wild Property with value == 0
-        return CardContainer();
+        return m_CardSets[setIndex].RemoveCardsWithValueNotZero(cardIndices);
     }
 
     void Player::RemoveHousesHotelsFromIncompleteSets()
     {
-        // TODO
-        // ≈сли платитьс€ проперти этого сета, то дом или отель кладутс€ р€дом, пока не соберетс€ новый полный сет, также их можно украсть с помощью SlyDeal ForcedDeal
+        for (auto& e : m_CardSets)
+        {
+            if (!e.IsFull())
+            {
+                if (e.IsHasHouse())
+                {
+                    auto house = e.RemoveCard(e.GetCards().size());
+                    m_CardSets.emplace_back(CardSet(house));
+                }
+                if (e.IsHasHotel())
+                {
+                    auto hotel = e.RemoveCard(e.GetCards().size() + 1);
+                    m_CardSets.emplace_back(CardSet(hotel));
+                }
+            }
+        }
     }
-
+    
     CardContainer Player::RemoveCardsFromHand(const CardIndicesContainer& cardIndices)
     {
-        // TODO
-        return CardContainer();
+        return m_Hand.RemoveCards(cardIndices);
     }
 
     CardContainerElem Player::RemoveCardFromHand(const int cardIndex)
@@ -134,17 +151,22 @@ namespace Monopoly
 
     CardContainer Player::RemoveCardsFromBank(const CardIndicesContainer& cardIndices)
     {
-        // TODO
-        return CardContainer();
+        return m_Bank.RemoveCards(cardIndices);
     }
 
     void Player::AddProperty(const CardContainerElem& card)
     {
-        //TODO
-        // add to set or create new set
+        for (auto& e : m_CardSets)
+        {
+            if (e.GetColor() == card->GetCurrentColor() && e.IsFull() == false)
+            {
+                e.AddProperty(card);
+            }
+        }
+        m_CardSets.emplace_back(CardSet(card));
     }
 
-    void Player::RemoveProperties()
+    void Player::RemoveSets()
     {
         m_CardSets.clear();
     }
