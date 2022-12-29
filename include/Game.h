@@ -60,7 +60,7 @@ protected:
     virtual void InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet) = 0;
     virtual void InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet) = 0;
     virtual void InputDebtCollector(int& victimIndex) = 0;
-    virtual void InputPay(const int notUsed, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) = 0;
+    virtual void InputPay(const int notUsed, const int amount, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) = 0;
     virtual void InputRentWild(int& victimIndex, int& setIndex) = 0;
     virtual void virtual InputRentTwoColors(int& setIndex) = 0;
 

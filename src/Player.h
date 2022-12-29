@@ -44,6 +44,10 @@ namespace Monopoly
         void RemoveProperties();
 
         int CountBankAndPropertiesValues() const;
+
+        int GetValueOfCards(const int amount, const std::vector<int>& moneyIndices, const std::unordered_map<int, std::vector<int>>& setIndices) const;
+        const static int InvalidIndex = -1;
+        const static int ValueLessThanAmount = -2;
     private:
         CardContainer m_Bank;
         CardContainer m_Hand;

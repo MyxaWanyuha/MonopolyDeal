@@ -462,7 +462,7 @@ namespace Monopoly
         {
             std::vector<int> moneyIndices;
             std::unordered_map<int, std::vector<int>> setIndices;
-            InputPay(victimIndex, moneyIndices, setIndices);
+            InputPay(victimIndex, amount, moneyIndices, setIndices);
             {
                 auto money = m_Players[victimIndex].RemoveCardsFromBank(moneyIndices);
                 m_Players[m_CurrentPlayerIndex].AddCardsToBank(std::move(money));

@@ -1,6 +1,8 @@
 #include <iostream>
+#include <sstream>
+#include <string>
+#include <vector>
 #include "Game.h"
-
 class ConsoleGame : protected Monopoly::Game
 {
     struct TurnInput
@@ -16,7 +18,7 @@ class ConsoleGame : protected Monopoly::Game
 public:
     ConsoleGame()
     {
-        std::cout << "Input players count(2-5): ";
+        std::cout << "Enter players count(2-5): ";
         int playersCount;
         std::cin >> playersCount;
         Game::Init(playersCount);
@@ -49,7 +51,7 @@ public:
             if (extraCards > 0)
             {
                 std::cout << "Player has extra cards: " << extraCards << '\n'
-                    << "Input the indices of the cards you want to remove: ";
+                    << "Enter the indices of the cards you want to remove: ";
                 Monopoly::CardIndicesContainer container;
                 container.resize(extraCards);
                 for (int i = 0; i < extraCards; ++i)
@@ -78,17 +80,17 @@ private:
                 return TurnInput(Game::ETurn::Pass);
             case Game::ETurn::FlipCard:
             {
-                std::cout << "Input set index: ";
+                std::cout << "Enter set index: ";
                 int setIndex;
                 std::cin >> setIndex;
-                std::cout << "Input card index: ";
+                std::cout << "Enter card index: ";
                 int index;
                 std::cin >> index;
                 return TurnInput(turn, index, setIndex);
             }
             case Game::ETurn::PlayCard:
             {
-                std::cout << "Input card index: ";
+                std::cout << "Enter card index: ";
                 int index;
                 std::cin >> index;
                 return TurnInput(turn, index);
@@ -140,12 +142,12 @@ private:
     
     virtual int SelectSetIndex(const std::vector<int>& indices) const override
     {
-        SelectIndex(indices, "Set indices: \n");
+        return SelectIndex(indices, "Set indices: \n");
     }
 
     int SelectPropertyIndex(const std::vector<int>& indices) const
     {
-        SelectIndex(indices, "Property indices: \n");
+        return SelectIndex(indices, "Property indices: \n");
     }
 
     void InputVictimIndex(int& victimIndex) const
@@ -241,26 +243,144 @@ private:
         InputVictimIndex(victimIndex);
     }
 
-    virtual void InputPay(const int victimIndex, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) override
+    virtual void InputPay(const int victimIndex, const int amount, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) override
     {
-        // TODO
+        const static std::string bank = "Bank";
+        const static std::string set = "Set";
+        const int errorCode = -1;
+        auto split = [](const std::string& target, const char c = ' ')
+        {
+            std::string temp;
+            std::stringstream stringstream{ target };
+            std::vector<std::string> result;
+            while (std::getline(stringstream, temp, c))
+                result.push_back(temp);
+            return result;
+        };
+        auto readBank = [&](const std::vector<std::string>& args)
+        {
+            int i = 1;
+            for (; i < args.size(); ++i)
+            {
+                if (args[i] == set)
+                {
+                    return i;
+                }
+
+                int arg;
+                if (sscanf(args[i].c_str(), "%d", &arg) != 1)
+                {
+                    std::cout << "Invalid input!\n";
+                    return errorCode;
+                }
+                if (std::find(moneyIndices.begin(), moneyIndices.end(), arg) != moneyIndices.end())
+                {
+                    std::cout << "You enter same index twice!\n";
+                    return errorCode;
+                }
+                moneyIndices.emplace_back(arg);
+            }
+            return i;
+        };
+        auto readSet = [&](const int startIndex, const std::vector<std::string>& args)
+        {
+            int arg;
+            int i = startIndex;
+            int setIndex;
+            if (sscanf(args[startIndex].c_str(), "%d", &setIndex) != 1)
+            {
+                std::cout << "Invalid input!\n";
+                return errorCode;
+            }
+            if (setIndices.find(setIndex) != setIndices.end())
+                return errorCode;
+            setIndices[setIndex];
+
+            for (i = startIndex + 1; i < args.size(); ++i)
+            {
+                if (args[i] == set)
+                    return i;
+                if (sscanf(args[i].c_str(), "%d", &arg) != 1)
+                {
+                    std::cout << "Invalid input!\n";
+                    return errorCode;
+                }
+                if (std::find(setIndices[setIndex].begin(), setIndices[setIndex].end(), arg) != setIndices[setIndex].end())
+                {
+                    std::cout << "You enter same index twice!\n";
+                    return errorCode;
+                }
+                setIndices[setIndex].emplace_back(arg);
+            }
+            return i;
+        };
+        auto readSets = [&](const int startIndex, const std::vector<std::string>& args)
+        {
+            for (int i = startIndex; i < args.size(); ++i)
+            {
+                if (args[i] == set)
+                {
+                    auto indexNextSet = readSet(i + 1, args);
+                    if (indexNextSet == errorCode)
+                        return errorCode;
+                    i = indexNextSet - 1;
+                }
+                else
+                    return errorCode;
+            }
+            return 0;
+        };
+        do {
+            std::cout << "Input template: \"Bank <cardIndex1> <cardIndex2>... Set <setIndex1> <propertyIndexInSet1> <propertyIndexInSet2>... Set <setIndex2>...\"\n";
+            std::cout << "Player " << victimIndex << " select your cards to pay: \n";
+            std::string input;
+            moneyIndices.clear();
+            setIndices.clear();
+
+            std::getline(std::cin, input);
+            auto args = split(input);
+            auto setIndex = 0;
+            if (args[setIndex] == bank)
+            {
+                setIndex = readBank(args);
+                if (setIndex == errorCode)
+                    continue;
+            }
+            if (setIndex < args.size() && args[setIndex] == set)
+            {
+                if (readSets(setIndex, args) == errorCode)
+                    continue;
+            }
+            auto check = Game::GetPlayers()[victimIndex].GetValueOfCards(amount, moneyIndices, setIndices);
+            if (check == Monopoly::Player::ValueLessThanAmount)
+            {
+                std::cout << "Not enought!\n";
+                continue;
+            }
+            else if (check == Monopoly::Player::InvalidIndex)
+            {
+                std::cout << "Invalid input!\n";
+                continue;
+            }
+            break;
+        } while (1);
     }
 
     virtual void InputRentWild(int& victimIndex, int& setIndex) override
     {
         InputVictimIndex(victimIndex);
+        InputRentTwoColors(setIndex);
+    }
+
+    virtual void InputRentTwoColors(int& setIndex) override
+    {
         const auto playerIndex = Game::GetCurrentPlayerIndex();
         const auto setsCount = Game::GetPlayers()[playerIndex].GetCardSets().size();
         std::vector<int> setIndices;
         setIndices.resize(setsCount);
         for (int i = 0; i < setsCount; ++i)
             setIndices[i] = i;
-        setIndex = SelectSetIndex(setIndices);
-    }
-
-    virtual void InputRentTwoColors(int& setIndex) override
-    {
-        // TODO
+        setIndex = SelectIndex(setIndices, "Enter the index of the set you want to rent from: \n");
     }
 
     virtual bool InputUseJustSayNo(const int victimIndex) const override
@@ -276,6 +396,7 @@ private:
                 return static_cast<bool>(input);
             }
             std::cout << "Incorrect input!\n";
+            input = -1;
         } while (input == -1);
     }
 
