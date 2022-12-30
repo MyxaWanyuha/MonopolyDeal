@@ -1,3 +1,4 @@
+#include "Monopoly_pch.h"
 #include "CardSet.h"
 #include "Card.h"
 
@@ -23,8 +24,11 @@ namespace Monopoly
         {
             AddProperty(card);
         }
-        const bool isEnhancement = AddHouse(card) || AddHotel(card);
-        assert(isEnhancement);
+        else
+        {
+            AddHouse(card);
+            AddHotel(card);
+        }
     }
 
     void CardSet::AddProperty(const CardContainerElem& card)

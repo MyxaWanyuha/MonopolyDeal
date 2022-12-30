@@ -1,8 +1,5 @@
 #pragma once
-#include <vector>
-#include <deque>
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
+#include "Monopoly_pch.h"
 #include "Player.h"
 
 namespace Monopoly
@@ -10,21 +7,12 @@ namespace Monopoly
 
 class Game
 {
-    static const uint32_t c_MinPlayersCount = 2;
-    static const uint32_t c_MaxPlayersCount = 5;
-    static const int c_FullSetsCountForWin = 3;
-    static const int c_StartCardsCount = 5;
-    static const int c_TurnCardsCount = 3;
-    static const int c_PassGoCardsCount = 2;
-    static const int c_MaxCardsCountInTurnEnd = 7;
-    static const int c_ItsMyBirthdayAmount = 2;
-    static const int c_DebtCollectorAmount = 5;
     using Players = std::vector<Player>;
     using Deck = std::deque<CardContainerElem>;
 protected:
     Game();
     bool Init(uint32_t playersCount);
-    bool IsNotEnded() const { return m_bIsNotEnded; }
+    bool IsNotEnded() const { return m_bGameIsNotEnded; }
     size_t GetPlayersCount() const { return m_Players.size(); }
     size_t GetCurrentPlayerIndex() const { return m_CurrentPlayerIndex; }
     const Players& GetPlayers() const { return m_Players; }
@@ -41,7 +29,8 @@ protected:
         IncorrectIndex,
         IncorrectCard,
         CardProcessed,
-        NextPlayer
+        NextPlayer,
+        GameOver
     };
 
     void BeginTurn();
@@ -107,7 +96,7 @@ private:
     Deck m_Deck;
     uint32_t m_CurrentPlayerIndex = 0;
     int m_CurrentPlayerTurnCounter = c_TurnCardsCount;
-    bool m_bIsNotEnded = true;
+    bool m_bGameIsNotEnded = true;
 };
 
 }

@@ -1,9 +1,5 @@
+#include "Monopoly_pch.h"
 #include "Game.h"
-#include <charconv>
-#include <iostream>
-#include <algorithm>
-#include <random>
-#include "JsonConstants.h"
 #include "CSVRow.h"
 #include "Card.h"
 
@@ -126,13 +122,11 @@ namespace Monopoly
 
     void Game::BeginTurn()
     {
-        auto& currentPlayer = m_Players[m_CurrentPlayerIndex];
-        PlayerTakeCardsFromDeck(currentPlayer, c_PassGoCardsCount);
+        PlayerTakeCardsFromDeck(m_Players[m_CurrentPlayerIndex], c_PassGoCardsCount);
     }
 
     Game::ETurnOutput Game::Turn(const ETurn input, const int cardIndex, const int setIndex)
     {
-        //TODO check winner
         auto& currentPlayer = m_Players[m_CurrentPlayerIndex];
         switch (input)
         {
@@ -144,6 +138,11 @@ namespace Monopoly
             if (!card || card->SwapColor() != EColor::None)
             {
                 currentPlayer.AddProperty(card);
+                if (currentPlayer.IsWinner())
+                {
+                    m_bGameIsNotEnded = false;
+                    return ETurnOutput::GameOver;
+                }
                 return ETurnOutput::CardProcessed;
             }
             return ETurnOutput::IncorrectIndex;
@@ -159,6 +158,11 @@ namespace Monopoly
             else if (type == ECardType::Property)
             {
                 currentPlayer.AddProperty(card);
+                if (currentPlayer.IsWinner())
+                {
+                    m_bGameIsNotEnded = false;
+                    return ETurnOutput::GameOver;
+                }
             }
             else if (type == ECardType::Action)
             {
@@ -172,6 +176,19 @@ namespace Monopoly
                     if (res != ETurnOutput::CardProcessed)
                     {
                         return res;
+                    }
+                }
+                if (currentPlayer.IsWinner())
+                {
+                    m_bGameIsNotEnded = false;
+                    return ETurnOutput::GameOver;
+                }
+                for (const auto& player : m_Players)
+                {
+                    if (player.IsWinner())
+                    {
+                        m_bGameIsNotEnded = false;
+                        return ETurnOutput::GameOver;
                     }
                 }
             }

@@ -33,6 +33,9 @@ add_library(${PROJECT_NAME} STATIC
     ${GAME_ALL_SOURCES}
 )
 
+target_precompile_headers(${PROJECT_NAME} PUBLIC include/Monopoly_pch.h)
+set(CMAKE_PCH_INSTANTIATE_TEMPLATES ON)
+
 add_executable(${GAME_PROJECT_NAME}
     src/MonopolyDeal.cpp
 )

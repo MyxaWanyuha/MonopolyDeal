@@ -1,7 +1,5 @@
 #pragma once
-#include <list>
-#include <memory>
-#include <vector>
+#include "Monopoly_pch.h"
 #include "CardSet.h"
 
 namespace Monopoly
@@ -14,6 +12,7 @@ namespace Monopoly
         std::vector<int> GetFullSetsIndices() const;
         std::vector<int> GetNotFullSetsIndices() const;
         int GetNotFullSetsCount() const;
+        bool IsWinner() const;
 
         size_t GetCountCardsInHand() const { return m_Hand.size(); }
         const CardContainer& GetCardsInHand() const { return m_Hand; }

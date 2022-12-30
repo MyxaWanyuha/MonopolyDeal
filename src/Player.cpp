@@ -1,3 +1,4 @@
+#include "Monopoly_pch.h"
 #include "Player.h"
 #include "Card.h"
 
@@ -34,6 +35,16 @@ namespace Monopoly
             res += static_cast<int>(!m_CardSets[i].IsFull());
         }
         return res;
+    }
+
+    bool Player::IsWinner() const
+    {
+        int fullSetsCount = 0;
+        for (const auto& set : m_CardSets)
+        {
+            fullSetsCount += static_cast<int>(set.IsFull());
+        }
+        return fullSetsCount >= c_FullSetsCountForWin;
     }
 
     int Player::GetIndexJustSayNo() const
