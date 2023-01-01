@@ -1,7 +1,5 @@
 #include "Monopoly_pch.h"
-#include "Game.h"
 #include "CSVRow.h"
-#include "Card.h"
 
 namespace Monopoly
 {
@@ -13,6 +11,7 @@ namespace Monopoly
 
     Game::Game()
     {
+        m_CurrentPlayerTurnCounter = c_TurnCardsCount;
         std::ifstream file("cardList.csv");
         if (!file.is_open())
         {
@@ -118,6 +117,47 @@ namespace Monopoly
         m_CurrentPlayerIndex = rand() % (playersCount + 1);
 
         return true;
+    }
+
+    int Game::Run()
+    {
+        while (m_bGameIsNotEnded)
+        {
+            BeginTurn();
+            ETurnOutput turnOutput;
+            do {
+                ShowPrivatePlayerData(m_CurrentPlayerIndex);
+                for (int i = 0; i < GetPlayers().size(); ++i)
+                {
+                    if (i != GetCurrentPlayerIndex())
+                        ShowPublicPlayerData(i);
+                }
+                ETurn turn = ETurn::Pass;
+                int cardIndex = 0, setIndex = 0;
+                InputTurn(turn, cardIndex, setIndex);
+                turnOutput = Turn(turn, cardIndex, setIndex);
+                if (turnOutput == Game::ETurnOutput::IncorrectInput)
+                {
+                    std::cerr << "Input is incorrect!\n";
+                }
+                else if (turnOutput == Game::ETurnOutput::IncorrectIndex)
+                {
+                    std::cerr << "Index is incorrect!\n";
+                }
+            } while (turnOutput != Game::ETurnOutput::NextPlayer && turnOutput != Game::ETurnOutput::GameOver);
+
+            if (auto extraCardsCount = Game::GetExtraCardsCount(); extraCardsCount > 0)
+            {
+                std::cout << "Player has extra cards: " << extraCardsCount << '\n'
+                    << "Enter the indices of the cards you want to remove: ";
+                std::vector<int> container;
+                InputIndexesToRemove(extraCardsCount, container);
+                assert(container.size() == extraCardsCount);
+                RemoveExtraCards(container);
+            }
+            EndTurn();
+        }
+        return 0;
     }
 
     void Game::BeginTurn()
@@ -305,9 +345,13 @@ namespace Monopoly
         return extraCardsCount > 0 ? extraCardsCount : 0;
     }
 
-    void Game::RemoveExtraCards(const CardIndicesContainer& extraCardsIndices)
+    void Game::RemoveExtraCards(const std::vector<int>& extraCardsIndices)
     {
-        m_Players[m_CurrentPlayerIndex].RemoveCardsFromHand(extraCardsIndices);
+        auto extra = m_Players[m_CurrentPlayerIndex].RemoveCardsFromHand(extraCardsIndices);
+        for (auto& e : extra)
+        {
+            m_Deck.push_front(e);
+        }
     }
 
     void Game::EndTurn()
@@ -325,25 +369,6 @@ namespace Monopoly
             m_Deck.pop_back();
         }
         player.AddCardsToHand(std::move(cards));
-    }
-
-    Game::ETurnOutput Game::FlipCard(Player & currentPlayer, CardContainerElem & card)
-    {
-
-        return ETurnOutput();
-    }
-
-    json Game::GetAllData() const
-    {
-        json result;
-        result[c_JSON_CurrentPlayerIndex] = m_CurrentPlayerIndex;
-
-        for (size_t i = 0; i < m_Players.size(); ++i)
-        {
-            //result[c_JSON_Players] += m_Players[i].ToJson();
-        }
-
-        return result;
     }
 
     Game::ETurnOutput Game::PassGo(Player& player)
@@ -551,4 +576,5 @@ namespace Monopoly
             m_Players[victimIndex].RemoveHousesHotelsFromIncompleteSets();
         }
     }
+
 }

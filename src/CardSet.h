@@ -1,11 +1,9 @@
 #pragma once
-#include "Monopoly_pch.h"
 #include "Card.h"
 
 namespace Monopoly
 {
     using CardContainerElem = std::shared_ptr<class ICard>;
-    //using CardContainer = std::list<CardContainerElem>;
     class CardContainer : public std::list<CardContainerElem>
     {
     public:
@@ -55,7 +53,7 @@ namespace Monopoly
         // GetCards().size() is index of House, GetCards().size() + 1 is index of Hotel 
         CardContainerElem RemoveCard(int index);
         CardContainer RemoveCardsWithValueNotZero(const std::vector<int>& cardIndices);
-        json ToJSON() const;
+
         EColor GetColor() const;
         bool IsFull() const;
         bool AddHouse(const CardContainerElem& cardHouse);

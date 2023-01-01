@@ -1,6 +1,4 @@
 #include "Monopoly_pch.h"
-#include "Player.h"
-#include "Card.h"
 
 namespace Monopoly
 {
@@ -44,7 +42,7 @@ namespace Monopoly
         {
             fullSetsCount += static_cast<int>(set.IsFull());
         }
-        return fullSetsCount >= c_FullSetsCountForWin;
+        return fullSetsCount >= Game::c_FullSetsCountForWin;
     }
 
     int Player::GetIndexJustSayNo() const
@@ -115,7 +113,7 @@ namespace Monopoly
         return res;
     }
 
-    CardContainer Player::RemoveCardsWithValueNotZeroFromSet(const int setIndex, const CardIndicesContainer& cardIndices)
+    CardContainer Player::RemoveCardsWithValueNotZeroFromSet(const int setIndex, const std::vector<int>& cardIndices)
     {
         return m_CardSets[setIndex].RemoveCardsWithValueNotZero(cardIndices);
     }
@@ -140,7 +138,7 @@ namespace Monopoly
         }
     }
     
-    CardContainer Player::RemoveCardsFromHand(const CardIndicesContainer& cardIndices)
+    CardContainer Player::RemoveCardsFromHand(const std::vector<int>& cardIndices)
     {
         return m_Hand.RemoveCards(cardIndices);
     }
@@ -160,7 +158,7 @@ namespace Monopoly
         m_Bank.emplace_back(card);
     }
 
-    CardContainer Player::RemoveCardsFromBank(const CardIndicesContainer& cardIndices)
+    CardContainer Player::RemoveCardsFromBank(const std::vector<int>& cardIndices)
     {
         return m_Bank.RemoveCards(cardIndices);
     }

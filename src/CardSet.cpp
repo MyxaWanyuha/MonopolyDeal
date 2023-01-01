@@ -1,6 +1,4 @@
 #include "Monopoly_pch.h"
-#include "CardSet.h"
-#include "Card.h"
 
 namespace Monopoly
 {
@@ -72,17 +70,6 @@ namespace Monopoly
         }
         m_Cards.remove(nullptr);
         return cards;
-    }
-
-    json CardSet::ToJSON() const
-    {
-        json result;
-        //for (auto& card : m_Cards)
-        //{
-        //    result += card.ToJSON();
-        //}
-        //TODO
-        return result;
     }
 
     EColor CardSet::GetColor() const

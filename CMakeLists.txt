@@ -17,7 +17,6 @@ set(GAME_PRIVATE_INCLUDES
 )
 
 set(GAME_PRIVATE_SOURCE
-    src/Card.cpp
     src/CardSet.cpp
     src/Game.cpp
     src/Player.cpp
@@ -61,3 +60,6 @@ add_custom_command(
         COMMAND ${CMAKE_COMMAND} -E copy
                 ${CMAKE_CURRENT_SOURCE_DIR}/resources/cardList.csv
                 ${CMAKE_CURRENT_BINARY_DIR})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+

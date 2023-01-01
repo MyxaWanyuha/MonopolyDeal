@@ -1,10 +1,4 @@
 #pragma once
-#include <cstdint>
-#include <array>
-#include <string>
-#include <unordered_map>
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 namespace Monopoly
 {
@@ -158,7 +152,7 @@ namespace Monopoly
     ActionCardClass(ItsMyBirthday);
     ActionCardClass(DebtCollector);
     ActionCardClass(RentWild);
-#undef ActionCard(Type_)
+#undef ActionCard
 
 #define RentTwoColorsCardClass(Type_, Color1_, Color2_) \
     class Type_ : public ActionCard \
@@ -176,6 +170,6 @@ namespace Monopoly
     RentTwoColorsCardClass(RentYellowRed, EColor::Yellow, EColor::Red);
     RentTwoColorsCardClass(RentUtilityRailroad, EColor::Utility, EColor::Railroad);
     RentTwoColorsCardClass(RentBlueGreen, EColor::Blue, EColor::Green);
-#undef RentTwoColorsCardClass(Type_)
+#undef RentTwoColorsCardClass
 
 }

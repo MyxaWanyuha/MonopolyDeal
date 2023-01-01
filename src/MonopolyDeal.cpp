@@ -1,18 +1,12 @@
 #include "Monopoly_pch.h"
 #include "Game.h"
 
-class ConsoleGame : protected Monopoly::Game
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+#include "JsonConstants.h"
+
+class ConsoleGame : public Monopoly::Game
 {
-    struct TurnInput
-    {
-        TurnInput(Game::ETurn input, int cardIndex = -1, int setIndex = -1)
-            : Input(input), CardIndex(cardIndex), SetIndex(setIndex)
-        {
-        }
-        Game::ETurn Input;
-        int CardIndex;
-        int SetIndex;
-    };
 public:
     ConsoleGame()
     {
@@ -23,6 +17,7 @@ public:
         } while (!Game::Init(playersCount));
     }
 
+private:
     auto Color(Monopoly::EColor color) const
     {
         for (auto it = Monopoly::c_ColorStrToEnum.begin(); it != Monopoly::c_ColorStrToEnum.end(); ++it) {
@@ -36,7 +31,7 @@ public:
         std::cout << "\n";
         if (card->GetType() == Monopoly::ECardType::Property)
         {
-            std::cout << "\t\t\t" << index <<". Property \"" << card->GetName() << "\"\n";
+            std::cout << "\t\t\t" << index << ". Property \"" << card->GetName() << "\"\n";
         }
         else if (card->GetType() == Monopoly::ECardType::Money)
         {
@@ -47,141 +42,45 @@ public:
             std::cout << "\t\t\t" << index << ". Action \"" << card->GetName() << "\"\n";
         }
 
-        if(card->GetValue() > 0)
+        if (card->GetValue() > 0)
             std::cout << "\t\t\tValue " << card->GetValue() << "\n";
-        if(card->GetCurrentColor() != Monopoly::EColor::None)
+        if (card->GetCurrentColor() != Monopoly::EColor::None)
             std::cout << "\t\t\tColor " << Color(card->GetCurrentColor()) << "\n";
         if (card->GetColor2() != Monopoly::EColor::None)
             std::cout << "\t\t\tColor for flip " << Color(card->GetColor2()) << "\n";
     }
 
-    void ShowPlayerData(const int index, const bool isPublicOnly) const
-    {
-        const auto& player = GetPlayers()[index];
-        if (isPublicOnly == false)
-        {
-            std::cout << "\tCurrent player(" << index << "): \n";
-            std::cout << "\t\tHand count: " << player.GetCardsInHand().size() << "\n";
-            for (int i = 0; i < player.GetCardsInHand().size(); ++i)
-            {
-                auto e = player.GetCardsInHand().begin();
-                std::advance(e, i);
-                ShowCard(i, *e);
-            }
-        }
-        else
-        {
-            std::cout << "\tPlayer(" << index << "): \n";
-        }
-        std::cout << "\t\tBank count: " << player.GetCardsInBank().size() << "\n";
-        for (int i = 0; i < player.GetCardsInBank().size(); ++i)
-        {
-            auto e = player.GetCardsInBank().begin();
-            std::advance(e, i);
-            ShowCard(i, *e);
-        }
-        std::cout << "\t\tSets count: " << player.GetCardSets().size() << "\n";
-        for (int j = 0; j < player.GetCardSets().size(); ++j)
-        {
-            std::cout << "\t\tCard set " << j << "\n";
-            const auto& set = player.GetCardSets()[j];
-            for (int i = 0; i < set.GetCards().size(); ++i)
-            {
-                auto e = set.GetCards().begin();
-                std::advance(e, i);
-                ShowCard(i, *e);
-            }
-            if (set.GetColor() != Monopoly::EColor::Railroad && set.GetColor() != Monopoly::EColor::Utility)
-            {
-                std::cout << "\t\t\tHouse: " << set.IsHasHouse();
-                std::cout << "\t\t\tHotel: " << set.IsHasHotel();
-            }
-            std::cout << "\n";
-        }
-    }
-
-    int Run()
-    {
-        while (Game::IsNotEnded())
-        {
-            Game::BeginTurn();
-            Game::ETurnOutput turnOutput;
-            do {
-                ShowPlayerData(GetCurrentPlayerIndex(), false);
-                for (int i = 0; i < GetPlayers().size(); ++i)
-                {
-                    if(i != GetCurrentPlayerIndex())
-                        ShowPlayerData(i, true);
-                }
-                TurnInput turn = InputTurn();
-                turnOutput = Game::Turn(turn.Input, turn.CardIndex, turn.SetIndex);
-                if (turnOutput == Game::ETurnOutput::IncorrectInput)
-                {
-                    std::cout << "Input is incorrect!\n";
-                }
-                else if (turnOutput == Game::ETurnOutput::IncorrectIndex)
-                {
-                    std::cout << "Index is incorrect!\n";
-                }
-            } while (turnOutput != Game::ETurnOutput::NextPlayer && turnOutput != Game::ETurnOutput::GameOver);
-
-            auto extraCards = Game::GetExtraCardsCount();
-            if (extraCards > 0)
-            {
-                std::cout << "Player has extra cards: " << extraCards << '\n'
-                    << "Enter the indices of the cards you want to remove: ";
-                Monopoly::CardIndicesContainer container;
-                container.resize(extraCards);
-                for (int i = 0; i < extraCards; ++i)
-                {
-                    int index;
-                    std::cin >> index;
-                    container[i] = index;
-                }
-                Game::RemoveExtraCards(container);
-            }
-            Game::EndTurn();
-        }
-        return 0;
-    }
-
-private:
-    TurnInput InputTurn()
+    virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const override
     {
         std::cout << "Input command:\n" 
             << static_cast<int>(Game::ETurn::Pass) << " - pass\n"
             << static_cast<int>(Game::ETurn::FlipCard) << " - flip\n"
             << static_cast<int>(Game::ETurn::PlayCard) << " - play\n";
-        Game::ETurn turn;
         do {
             std::cin >> (int&)turn;
             switch (turn)
             {
             case Game::ETurn::Pass:
-                return TurnInput(Game::ETurn::Pass);
+                break;
             case Game::ETurn::FlipCard:
             {
                 std::cout << "Enter set index: ";
-                int setIndex;
                 std::cin >> setIndex;
                 std::cout << "Enter card index: ";
-                int index;
-                std::cin >> index;
-                return TurnInput(turn, index, setIndex);
+                std::cin >> cardIndex;
+                break;
             }
             case Game::ETurn::PlayCard:
             {
                 std::cout << "Enter card index: ";
-                int index;
-                std::cin >> index;
-                return TurnInput(turn, index);
+                std::cin >> cardIndex;
+                break;
             }
             case Game::ETurn::HouseHotelOnTable:
             {
                 std::cout << "Enter card index: ";
-                int index;
-                std::cin >> index;
-                return TurnInput(turn, index);
+                std::cin >> cardIndex;
+                break;
             }
             default:
                 std::cerr << "Input is incorrect! Try again:\n";
@@ -263,7 +162,7 @@ private:
 
     virtual void InputDealBreaker(int& victimIndex, int& setIndex) const override
     {
-        Monopoly::CardIndicesContainer fullSetIndices;
+        std::vector<int> fullSetIndices;
         do {
             InputVictimIndex(victimIndex);
             fullSetIndices = GetPlayers()[victimIndex].GetFullSetsIndices();
@@ -278,7 +177,7 @@ private:
 
     void InputPropertyIndex(const int player, const int setIndex, int& propertyIndexInSet) const
     {
-        Monopoly::CardIndicesContainer indices;
+        std::vector<int> indices;
         propertyIndexInSet = -1;
         const auto& set = GetPlayers()[player].GetCardSets()[setIndex];
         const auto cardsCount = set.GetCards().size();
@@ -500,6 +399,72 @@ private:
         {
             emptyIndex = SelectIndex(emptyHotelSetsIndexes, "Select the hotel you want to add to: \n");
             setIndex = SelectIndex(fullSetsWithoutHotelsIndexes, "Select the set you want to add hotel: \n");
+        }
+    }
+
+    void ShowPlayerData(const int index, const bool isPublic) const
+    {
+        const auto& player = GetPlayers()[index];
+        if (isPublic)
+        {
+            std::cout << "\tPlayer(" << index << "): \n";
+        }
+        else
+        {
+            std::cout << "\tCurrent player(" << index << "): \n";
+            std::cout << "\t\tHand count: " << player.GetCardsInHand().size() << "\n";
+            for (int i = 0; i < player.GetCardsInHand().size(); ++i)
+            {
+                auto e = player.GetCardsInHand().begin();
+                std::advance(e, i);
+                ShowCard(i, *e);
+            }
+        }
+        std::cout << "\t\tBank count: " << player.GetCardsInBank().size() << "\n";
+        for (int i = 0; i < player.GetCardsInBank().size(); ++i)
+        {
+            auto e = player.GetCardsInBank().begin();
+            std::advance(e, i);
+            ShowCard(i, *e);
+        }
+        std::cout << "\t\tSets count: " << player.GetCardSets().size() << "\n";
+        for (int j = 0; j < player.GetCardSets().size(); ++j)
+        {
+            std::cout << "\t\tCard set " << j << "\n";
+            const auto& set = player.GetCardSets()[j];
+            for (int i = 0; i < set.GetCards().size(); ++i)
+            {
+                auto e = set.GetCards().begin();
+                std::advance(e, i);
+                ShowCard(i, *e);
+            }
+            if (set.GetColor() != Monopoly::EColor::Railroad && set.GetColor() != Monopoly::EColor::Utility)
+            {
+                std::cout << "\t\t\tHouse: " << set.IsHasHouse();
+                std::cout << "\t\t\tHotel: " << set.IsHasHotel();
+            }
+            std::cout << "\n";
+        }
+    }
+
+    virtual void ShowPublicPlayerData(const int index) const override
+    {
+        ShowPlayerData(index, true);
+    }
+
+    virtual void ShowPrivatePlayerData(const int index) const override
+    {
+        ShowPlayerData(index, false);
+    }
+
+    virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) override
+    {
+        container.resize(extraCardsCount);
+        for (int i = 0; i < extraCardsCount; ++i)
+        {
+            int index;
+            std::cin >> index;
+            container[i] = index;
         }
     }
 

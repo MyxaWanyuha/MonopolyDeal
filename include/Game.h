@@ -1,5 +1,4 @@
 #pragma once
-#include "Monopoly_pch.h"
 #include "Player.h"
 
 namespace Monopoly
@@ -9,10 +8,21 @@ class Game
 {
     using Players = std::vector<Player>;
     using Deck = std::deque<CardContainerElem>;
+    static const uint32_t c_MinPlayersCount = 2;
+    static const uint32_t c_MaxPlayersCount = 5;
+    static const int c_StartCardsCount = 5;
+    static const int c_TurnCardsCount = 3;
+    static const int c_PassGoCardsCount = 2;
+    static const int c_MaxCardsCountInTurnEnd = 7;
+    static const int c_ItsMyBirthdayAmount = 2;
+    static const int c_DebtCollectorAmount = 5;
+public:
+    static const int c_FullSetsCountForWin = 3;
+    int Run();
+
 protected:
     Game();
     bool Init(uint32_t playersCount);
-    bool IsNotEnded() const { return m_bGameIsNotEnded; }
     size_t GetPlayersCount() const { return m_Players.size(); }
     size_t GetCurrentPlayerIndex() const { return m_CurrentPlayerIndex; }
     const Players& GetPlayers() const { return m_Players; }
@@ -32,20 +42,16 @@ protected:
         NextPlayer,
         GameOver
     };
-
-    void BeginTurn();
-    ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);
-    Monopoly::Game::ETurnOutput MoveHouseOrHotelFromTableToSet(Monopoly::Player& currentPlayer);
-    int GetExtraCardsCount() const;
-    void RemoveExtraCards(const CardIndicesContainer& extraCardsIndices);
-    void EndTurn();
-
     enum class EActionInput
     {
         ToBank = 0,
         Play = 1
     };
 
+    virtual void ShowPublicPlayerData(const int index) const = 0;
+    virtual void ShowPrivatePlayerData(const int index) const = 0;
+    virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) = 0;
+    virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const = 0;
     virtual EActionInput GetActionInput() const = 0;
     virtual int SelectSetIndex(const std::vector<int>& indices) const = 0;
     virtual void InputDealBreaker(int& victimIndex, int& setIndex) const = 0;
@@ -54,22 +60,24 @@ protected:
     virtual void InputDebtCollector(int& victimIndex) = 0;
     virtual void InputPay(const int notUsed, const int amount, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) = 0;
     virtual void InputRentWild(int& victimIndex, int& setIndex) = 0;
-    virtual void virtual InputRentTwoColors(int& setIndex) = 0;
-    virtual void virtual InputMoveHouseHotelFromTableToFullSet(
+    virtual void InputRentTwoColors(int& setIndex) = 0;
+    virtual void InputMoveHouseHotelFromTableToFullSet(
         const std::vector<int>& emptyHouseSetsIndexes,
         const std::vector<int>& emptyHotelSetsIndexes,
         const std::vector<int>& fullSetsWithoutHouseIndexes,
         const std::vector<int>& fullSetsWithoutHotelsIndexes,
         int& emptyIndex, int& setIndex) = 0;
-    
     virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
 
-    json GetAllData() const;
-
 private:
+    void BeginTurn();
+    ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);
+    ETurnOutput MoveHouseOrHotelFromTableToSet(Player& currentPlayer);
+    int GetExtraCardsCount() const;
+    void RemoveExtraCards(const std::vector<int>& extraCardsIndices);
+    void EndTurn();
     void PlayerTakeCardsFromDeck(Player& player, const int count);
 
-    ETurnOutput FlipCard(Player& currentPlayer, CardContainerElem& card);
     // Action cards process
     ETurnOutput ProcessActionCard(Player& currentPlayer, CardContainerElem& card);
     ETurnOutput PassGo(Player& player);
@@ -95,7 +103,7 @@ private:
     Players m_Players;
     Deck m_Deck;
     uint32_t m_CurrentPlayerIndex = 0;
-    int m_CurrentPlayerTurnCounter = c_TurnCardsCount;
+    int m_CurrentPlayerTurnCounter = 0;
     bool m_bGameIsNotEnded = true;
 };
 

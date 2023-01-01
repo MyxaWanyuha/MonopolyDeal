@@ -1,10 +1,9 @@
 #pragma once
-#include "Monopoly_pch.h"
-#include "CardSet.h"
+#include "Card.h"
 
 namespace Monopoly
 {
-    using CardIndicesContainer = std::vector<int>;
+
     class Player
     {
     public:
@@ -25,16 +24,16 @@ namespace Monopoly
         
         CardContainerElem RemoveCardFromHand(const int cardIndex);
         void AddCardsToHand(CardContainer&& cards);
-        CardContainer RemoveCardsFromHand(const CardIndicesContainer& cardIndices);
+        CardContainer RemoveCardsFromHand(const std::vector<int>& cardIndices);
 
         void AddCardToBank(const CardContainerElem& card);
         void AddCardsToBank(CardContainer&& cards);
-        CardContainer RemoveCardsFromBank(const CardIndicesContainer& cardIndices);
+        CardContainer RemoveCardsFromBank(const std::vector<int>& cardIndices);
 
         void AddSet(CardSet&& set);
         CardSet RemoveSet(const int setIndex);
         CardContainerElem RemoveCardFromSet(const int setIndex, const int cardIndex);
-        CardContainer RemoveCardsWithValueNotZeroFromSet(const int setIndex, const CardIndicesContainer& cardIndices);
+        CardContainer RemoveCardsWithValueNotZeroFromSet(const int setIndex, const std::vector<int>& cardIndices);
         void RemoveHousesHotelsFromIncompleteSets();
 
         void RemoveAllFromBank();
