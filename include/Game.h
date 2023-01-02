@@ -68,7 +68,7 @@ protected:
         const std::vector<int>& fullSetsWithoutHotelsIndexes,
         int& emptyIndex, int& setIndex) = 0;
     virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
-
+    virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const = 0;
 private:
     void BeginTurn();
     ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);
@@ -90,7 +90,8 @@ private:
     ETurnOutput RentWild(Player& player, const CardContainerElem& card);
     ETurnOutput RentTwoColors(Player& player, const CardContainerElem& card);
     bool JustSayNo(const int player1Index, const int player2Index);
-    bool DoubleTheRent(const int playerIndex);
+    int DoubleTheRent(Player& player, int& payValue);
+    void JustSayNoDoubleTheRent(const int howManyCardsToUse, const int victimIndex, int& payValue);
     void Pay(int victimIndex, int amount);
 
     template<typename T>

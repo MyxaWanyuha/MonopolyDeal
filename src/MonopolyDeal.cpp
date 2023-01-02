@@ -468,6 +468,25 @@ private:
         }
     }
 
+    virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const override
+    {
+        do
+        {
+            std::cout << "How many cards DoubleTheRent to use?\n";
+            for (int i = 0; i < (doubleTheRentCount + 1); ++i)
+            {
+                std::cout << i << ".\n";
+            }
+            std::cin >> howManyCardsToUse;
+            if (howManyCardsToUse < 0 || howManyCardsToUse >(doubleTheRentCount + 1))
+            {
+                std::cout << "Invalid input!\n";
+                continue;
+            }
+            break;
+        } while (1);
+    }
+
 };
 
 int main()

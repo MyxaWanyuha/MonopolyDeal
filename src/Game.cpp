@@ -485,15 +485,9 @@ namespace Monopoly
     {
         int victimIndex, setIndex;
         InputRentWild(victimIndex, setIndex);
-
         auto payValue = player.GetCardSets()[setIndex].GetPayValue();
-
-        // TODO DoubleTheRent(const int playerIndex);
-        // justsayno отменяет дабл зе рент, если он был использован
-        if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
-        {
-            Pay(victimIndex, payValue);
-        }
+        auto howManyDoubleTheRent = DoubleTheRent(player, payValue);
+        JustSayNoDoubleTheRent(howManyDoubleTheRent, victimIndex, payValue);
         return ETurnOutput::CardProcessed;
     }
 
@@ -503,14 +497,14 @@ namespace Monopoly
         InputRentTwoColors(setIndex);
 
         auto payValue = player.GetCardSets()[setIndex].GetPayValue();
-
-        // TODO DoubleTheRent(const int playerIndex);
-        // justsayno отменяет дабл зе рент (для одного игрока?), если он был использован
+        auto howManyCardsToUse = DoubleTheRent(player, payValue);
         for (int i = 0; i < m_Players.size(); ++i)
         {
             if (i != m_CurrentPlayerIndex && !JustSayNo(i, m_CurrentPlayerIndex))
             {
-                Pay(i, payValue);
+                int pv = payValue;
+                JustSayNoDoubleTheRent(howManyCardsToUse, i, pv);
+                Pay(i, pv);
             }
         }
         return ETurnOutput::CardProcessed;
@@ -527,10 +521,46 @@ namespace Monopoly
         return false;
     }
 
-    bool Game::DoubleTheRent(const int playerIndex)
+    int Game::DoubleTheRent(Player& player, int& payValue)
     {
-        // TODO
-        return false;
+        int doubleTheRentCount = 0;
+        for (const auto& e : player.GetCardsInHand())
+        {
+            if (e->GetActionType() == EActionType::DoubleTheRent)
+            {
+                ++doubleTheRentCount;
+            }
+        }
+        int howManyCardsToUse = 0;
+        if (doubleTheRentCount > 0)
+        {
+            InputDoubleTheRent(doubleTheRentCount, howManyCardsToUse);
+            for (int i = 0; i < howManyCardsToUse; ++i)
+            {
+                payValue *= 2;
+                for (int j = 0; j < player.GetCardsInHand().size(); ++j)
+                {
+                    const auto& e = player.GetCardsInHand().begin();
+                    std::advance(e, j);
+                    if ((*e)->GetActionType() == EActionType::DoubleTheRent)
+                    {
+                        player.RemoveCardFromHand(j);
+                    }
+                }
+            }
+        }
+        return howManyCardsToUse;
+    }
+
+    void Game::JustSayNoDoubleTheRent(const int howManyCardsToUse, const int victimIndex, int& payValue)
+    {
+        for (int i = 0; i < howManyCardsToUse; ++i)
+        {
+            if (JustSayNo(victimIndex, m_CurrentPlayerIndex))
+            {
+                payValue /= 2;
+            }
+        }
     }
     
     void Game::Pay(int victimIndex, int amount)
