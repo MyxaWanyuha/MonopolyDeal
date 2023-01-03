@@ -175,8 +175,9 @@ namespace Monopoly
         case ETurn::FlipCard:
         {
             auto card = currentPlayer.RemoveCardFromSet(setIndex, cardIndex);
-            if (!card || card->SwapColor() != EColor::None)
+            if (card != nullptr && card->GetColor2() != EColor::None)
             {
+                card->SwapColor();
                 currentPlayer.AddProperty(card);
                 if (currentPlayer.IsWinner())
                 {
@@ -184,6 +185,10 @@ namespace Monopoly
                     return ETurnOutput::GameOver;
                 }
                 return ETurnOutput::CardProcessed;
+            }
+            else
+            {
+                currentPlayer.AddProperty(card);
             }
             return ETurnOutput::IncorrectIndex;
         }
@@ -279,7 +284,7 @@ namespace Monopoly
             InputMoveHouseHotelFromTableToFullSet(emptyHouseSetsIndexes, emptyHotelSetsIndexes,
                 fullSetsWithoutHouseIndexes, fullSetsWithoutHotelsIndexes, emptyIndex, setIndex);
 
-            auto emptySet = currentPlayer.GetCardSets()[emptyIndex];
+            auto emptySet = currentPlayer.GetCardSets()[emptyIndex]; 
             CardContainerElem card;
             if (emptySet.IsHasHouse())
             {
