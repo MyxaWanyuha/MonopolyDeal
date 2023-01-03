@@ -540,7 +540,7 @@ namespace Monopoly
                 payValue *= 2;
                 for (int j = 0; j < player.GetCardsInHand().size(); ++j)
                 {
-                    const auto& e = player.GetCardsInHand().begin();
+                    auto& e = player.GetCardsInHand().begin();
                     std::advance(e, j);
                     if ((*e)->GetActionType() == EActionType::DoubleTheRent)
                     {

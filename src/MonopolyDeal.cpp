@@ -61,26 +61,26 @@ private:
             switch (turn)
             {
             case Game::ETurn::Pass:
-                break;
+                return;
             case Game::ETurn::FlipCard:
             {
                 std::cout << "Enter set index: ";
                 std::cin >> setIndex;
                 std::cout << "Enter card index: ";
                 std::cin >> cardIndex;
-                break;
+                return;
             }
             case Game::ETurn::PlayCard:
             {
                 std::cout << "Enter card index: ";
                 std::cin >> cardIndex;
-                break;
+                return;
             }
             case Game::ETurn::HouseHotelOnTable:
             {
                 std::cout << "Enter card index: ";
                 std::cin >> cardIndex;
-                break;
+                return;
             }
             default:
                 std::cerr << "Input is incorrect! Try again:\n";
