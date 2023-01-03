@@ -170,6 +170,7 @@ namespace Monopoly
             if (e.GetColor() == card->GetCurrentColor() && e.IsFull() == false)
             {
                 e.AddProperty(card);
+                return;
             }
         }
         m_CardSets.emplace_back(CardSet(card));

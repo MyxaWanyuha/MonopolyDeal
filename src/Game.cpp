@@ -148,8 +148,6 @@ namespace Monopoly
 
             if (auto extraCardsCount = Game::GetExtraCardsCount(); extraCardsCount > 0)
             {
-                std::cout << "Player has extra cards: " << extraCardsCount << '\n'
-                    << "Enter the indices of the cards you want to remove: ";
                 std::vector<int> container;
                 InputIndexesToRemove(extraCardsCount, container);
                 assert(container.size() == extraCardsCount);

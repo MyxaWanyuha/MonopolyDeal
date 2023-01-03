@@ -459,6 +459,8 @@ private:
 
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) override
     {
+        std::cout << "Player has extra cards: " << extraCardsCount << '\n'
+            << "Enter the indices of the cards you want to remove: ";
         container.resize(extraCardsCount);
         for (int i = 0; i < extraCardsCount; ++i)
         {
