@@ -15,6 +15,8 @@ namespace Monopoly
     static const char* c_JSON_Card_Color         = "Color";
     static const char* c_JSON_Card_SecondColor   = "SecondColor";
     static const char* c_JSON_Card_Action        = "Action";
-    static const char* c_JSON_Card_IsFlipped     = "IsFlipped";
 
+    static const char* c_JSON_Card_Type_Money = "Money";
+    static const char* c_JSON_Card_Type_Action = "Action";
+    static const char* c_JSON_Card_Type_Property = "Property";
 }

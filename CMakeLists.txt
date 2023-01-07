@@ -14,12 +14,14 @@ set(GAME_PRIVATE_INCLUDES
     src/CardSet.h
     src/Player.h
     src/CSVRow.h
+    src/JSONGame.h
 )
 
 set(GAME_PRIVATE_SOURCE
     src/CardSet.cpp
     src/Game.cpp
     src/Player.cpp
+    src/JSONGame.cpp
 )
 
 set(GAME_ALL_SOURCES

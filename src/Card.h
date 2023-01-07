@@ -41,6 +41,27 @@ namespace Monopoly
         None
     };
 
+    const static std::unordered_map<EActionType, std::string_view> c_ActionTypeEnumToStr =
+    {
+        {EActionType::None, "None"},
+        {EActionType::PassGo, "PassGo"},
+        {EActionType::DoubleTheRent, "DoubleTheRent"},
+        {EActionType::JustSayNo, "JustSayNo"},
+        {EActionType::Hotel, "Hotel"},
+        {EActionType::House, "House"},
+        {EActionType::DealBreaker, "DealBreaker"},
+        {EActionType::SlyDeal, "SlyDeal"},
+        {EActionType::ForcedDeal, "ForcedDeal"},
+        {EActionType::ItsMyBirthday, "ItsMyBirthday"},
+        {EActionType::DebtCollector, "DebtCollector"},
+        {EActionType::RentWild, "RentWild"},
+        {EActionType::RentLightBlueBrown, "RentLightBlueBrown"},
+        {EActionType::RentOrangePink, "RentOrangePink"},
+        {EActionType::RentYellowRed, "RentYellowRed"},
+        {EActionType::RentUtilityRailroad, "RentUtilityRailroad"},
+        {EActionType::RentBlueGreen, "RentBlueGreen"}
+    };
+
     const static std::unordered_map<std::string_view, EColor> c_ColorStrToEnum =
     {
         {"Yellow", EColor::Yellow},
