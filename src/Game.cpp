@@ -1,13 +1,13 @@
 #include "Monopoly_pch.h"
 #include "CSVRow.h"
 
+#include <fstream>
+#include "JsonConstants.h"
+#include "nlohmann/json.hpp"
+using json = ::nlohmann::json;
+
 namespace Monopoly
 {
-#if NDEBUG
-    uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-#else
-    uint32_t seed = 1337322228u;
-#endif
 
     Game::Game()
     {
@@ -28,7 +28,7 @@ namespace Monopoly
                 std::cerr << "Can't read file!\n";
                 exit(2);
             }
-            assert(row.size() == 7);
+            assert(row.size() == 8);
 
             auto to_int = [](const std::string_view& input)
             {
@@ -42,7 +42,10 @@ namespace Monopoly
                 return out;
             };
 
-            const std::string name(row[0]);
+            std::string name(row[0]);
+            name.shrink_to_fit();
+            std::string shortData(row[7]);
+            shortData.shrink_to_fit();
             const auto& cardType = row[1];
             const int count = to_int(row[3]);
             const int value = to_int(row[2]);
@@ -50,57 +53,57 @@ namespace Monopoly
             {
                 const auto& actionType = row[6];
                 if (actionType == "PassGo")
-                    InitDeck<PassGoCard>(count, name, value);
+                    InitDeck<PassGoCard>(count, name, shortData, value);
                 else if (actionType == "DoubleTheRent")
-                    InitDeck<DoubleTheRentCard>(count, name, value);
+                    InitDeck<DoubleTheRentCard>(count, name, shortData, value);
                 else if (actionType == "JustSayNo")
-                    InitDeck<JustSayNoCard>(count, name, value);
+                    InitDeck<JustSayNoCard>(count, name, shortData, value);
                 else if (actionType == "Hotel")
-                    InitDeck<HotelCard>(count, name, value);
+                    InitDeck<HotelCard>(count, name, shortData, value);
                 else if (actionType == "House")
-                    InitDeck<HouseCard>(count, name, value);
+                    InitDeck<HouseCard>(count, name, shortData, value);
                 else if (actionType == "DealBreaker")
-                    InitDeck<DealBreakerCard>(count, name, value);
+                    InitDeck<DealBreakerCard>(count, name, shortData, value);
                 else if (actionType == "SlyDeal")
-                    InitDeck<SlyDealCard>(count, name, value);
+                    InitDeck<SlyDealCard>(count, name, shortData, value);
                 else if (actionType == "ForcedDeal")
-                    InitDeck<ForcedDealCard>(count, name, value);
+                    InitDeck<ForcedDealCard>(count, name, shortData, value);
                 else if (actionType == "ItsMyBirthday")
-                    InitDeck<ItsMyBirthdayCard>(count, name, value);
+                    InitDeck<ItsMyBirthdayCard>(count, name, shortData, value);
                 else if (actionType == "DebtCollector")
-                    InitDeck<DebtCollectorCard>(count, name, value);
+                    InitDeck<DebtCollectorCard>(count, name, shortData, value);
                 else if (actionType == "RentWild")
-                    InitDeck<RentWildCard>(count, name, value);
+                    InitDeck<RentWildCard>(count, name, shortData, value);
                 else if (actionType == "RentLightBlueBrown")
-                    InitDeck<RentLightBlueBrown>(count, name, value);
+                    InitDeck<RentLightBlueBrown>(count, name, shortData, value);
                 else if (actionType == "RentOrangePink")
-                    InitDeck<RentOrangePink>(count, name, value);
+                    InitDeck<RentOrangePink>(count, name, shortData, value);
                 else if (actionType == "RentYellowRed")
-                    InitDeck<RentYellowRed>(count, name, value);
+                    InitDeck<RentYellowRed>(count, name, shortData, value);
                 else if (actionType == "RentUtilityRailroad")
-                    InitDeck<RentUtilityRailroad>(count, name, value);
+                    InitDeck<RentUtilityRailroad>(count, name, shortData, value);
                 else if (actionType == "RentBlueGreen")
-                    InitDeck<RentBlueGreen>(count, name, value);
+                    InitDeck<RentBlueGreen>(count, name, shortData, value);
             }
             else if (cardType == "Money")
             {
-                InitDeck<MoneyCard>(count, name, value);
+                InitDeck<MoneyCard>(count, name, shortData, value);
             }
             else if (cardType == "Property")
             {
                 auto color1 = c_ColorStrToEnum.at(row[4]);
                 auto color2 = c_ColorStrToEnum.at(row[5]);
                 for (int j = 0; j < count; ++j)
-                    m_Deck.push_front(std::make_shared<PropertyCard>(name, value, color1, color2));
+                    m_Deck.push_front(std::make_shared<PropertyCard>(name, shortData, value, color1, color2));
             }
         }
 
         assert(m_Deck.size() == 106);// all cards readed
-        std::shuffle(m_Deck.begin(), m_Deck.end(), std::default_random_engine(seed));
     }
 
-    bool Game::Init(const uint32_t playersCount)
+    bool Game::Init(const uint32_t playersCount, const uint32_t seed)
     {
+        std::shuffle(m_Deck.begin(), m_Deck.end(), std::default_random_engine(seed));
         if (playersCount < c_MinPlayersCount || playersCount > c_MaxPlayersCount)
         {
             std::cerr << "Invalid players count!\n";
@@ -309,7 +312,10 @@ namespace Monopoly
         switch (card->GetActionType())
         {
         case EActionType::PassGo:
+        {
+            m_Draw.emplace_back(card);
             return PassGo(currentPlayer);
+        }
         case EActionType::Hotel:
             return Enhancement(currentPlayer, card);
         case EActionType::House:
@@ -423,6 +429,7 @@ namespace Monopoly
         {
             player.AddSet(m_Players[victimIndex].RemoveSet(setIndex));
         }
+        m_Draw.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -438,6 +445,7 @@ namespace Monopoly
         {
             player.AddProperty(m_Players[victimIndex].RemoveCardFromSet(setIndex, propertyIndexInSet));
         }
+        m_Draw.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -458,6 +466,7 @@ namespace Monopoly
             player.AddProperty(victimCard);
             m_Players[victimIndex].AddProperty(instigatorCard);
         }
+        m_Draw.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -470,6 +479,7 @@ namespace Monopoly
                 Pay(i, c_ItsMyBirthdayAmount);
             }
         }
+        m_Draw.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -482,6 +492,7 @@ namespace Monopoly
         {
             Pay(victimIndex, c_DebtCollectorAmount);
         }
+        m_Draw.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -492,6 +503,7 @@ namespace Monopoly
         auto payValue = player.GetCardSets()[setIndex].GetPayValue();
         auto howManyDoubleTheRent = DoubleTheRent(player, payValue);
         JustSayNoDoubleTheRent(howManyDoubleTheRent, victimIndex, payValue);
+        m_Draw.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -511,6 +523,7 @@ namespace Monopoly
                 Pay(i, pv);
             }
         }
+        m_Draw.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -519,7 +532,8 @@ namespace Monopoly
         const auto i = m_Players[victimIndex].GetIndexJustSayNo();
         if (i >= 0 && InputUseJustSayNo(victimIndex))
         {
-            m_Players[victimIndex].RemoveCardFromHand(i);
+            const auto card = m_Players[victimIndex].RemoveCardFromHand(i);
+            m_Draw.emplace_back(card);
             return !JustSayNo(instigatorIndex, victimIndex);
         }
         return false;
@@ -536,6 +550,9 @@ namespace Monopoly
             }
         }
         int howManyCardsToUse = 0;
+        // TODO DTR is a turn
+        // TODO check m_CurrentPlayerTurnCounter
+        // TODO m_CurrentPlayerTurnCounter--
         if (doubleTheRentCount > 0)
         {
             InputDoubleTheRent(doubleTheRentCount, howManyCardsToUse);
@@ -548,7 +565,8 @@ namespace Monopoly
                     std::advance(e, j);
                     if ((*e)->GetActionType() == EActionType::DoubleTheRent)
                     {
-                        player.RemoveCardFromHand(j);
+                        const auto card = player.RemoveCardFromHand(j);
+                        m_Draw.emplace_back(card);
                     }
                 }
             }
@@ -609,6 +627,68 @@ namespace Monopoly
             }
             m_Players[victimIndex].RemoveHousesHotelsFromIncompleteSets();
         }
+    }
+
+    void Game::Save(const std::string& fileName) const
+    {
+        json save;
+
+        save[c_JSON_CurrentPlayerIndex] = m_CurrentPlayerIndex;
+        save[c_JSON_CurrentPlayerTurnCounter] = m_CurrentPlayerTurnCounter;
+
+        {
+            json deck;
+            for (const auto& e : m_Deck)
+                deck += e->GetShortData();
+            save[c_JSON_Deck] = deck;
+        }
+        {
+            json draw;
+            for (const auto& e : m_Draw)
+                draw += e->GetShortData();
+            save[c_JSON_Draw] = draw;
+        }
+
+        json players;
+        for (const auto& e : m_Players)
+        {
+            json playerData;
+            auto addPlayerCards = [&](const CardContainer& cards, const char* jsonKey)
+            {
+                json cardsData;
+                for (const auto& card : cards)
+                    cardsData += card->GetShortData();
+                playerData[jsonKey] = cardsData;
+            };
+
+            addPlayerCards(e.GetCardsInHand(), c_JSON_Hand);
+            addPlayerCards(e.GetCardsInBank(), c_JSON_Bank);
+            {
+                auto& sets = e.GetCardSets();
+                json setsData;
+                for (int j = 0; j < sets.size(); ++j)
+                {
+                    json setjson;
+                    for (const auto& card : sets[j].GetCards())
+                        setjson += card->GetShortData();
+                    setsData += setjson;
+                }
+                playerData[c_JSON_Sets] = setsData;
+            }
+            players += playerData;
+        }
+        save[c_JSON_Players] = players;
+        std::ofstream file(fileName);
+        file << save;
+    }
+
+    bool Game::Load(const std::string& fileName)
+    {
+        std::ifstream ifs(fileName);
+        json jf = json::parse(ifs);
+        // TODO
+
+        return true;
     }
 
 }

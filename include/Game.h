@@ -8,6 +8,7 @@ class Game
 {
     using Players = std::vector<Player>;
     using Deck = std::deque<CardContainerElem>;
+    using Draw = std::vector<CardContainerElem>;
     static constexpr uint32_t c_MinPlayersCount = 2;
     static constexpr uint32_t c_MaxPlayersCount = 5;
     static constexpr int c_StartCardsCount = 5;
@@ -23,10 +24,16 @@ public:
 
 protected:
     Game();
-    bool Init(uint32_t playersCount);
+    bool Init(const uint32_t playersCount, const uint32_t seed);
+    size_t GetDeckCardsCount() const { return m_Deck.size(); }
+    const Draw& GetDrawCards() const { return m_Draw; }
     size_t GetPlayersCount() const { return m_Players.size(); }
     size_t GetCurrentPlayerIndex() const { return m_CurrentPlayerIndex; }
     const Players& GetPlayers() const { return m_Players; }
+
+    void Save(const std::string& fileName) const;
+    bool Load(const std::string& fileName);
+
     enum class ETurn : int
     {
         Pass = 1,
@@ -96,14 +103,15 @@ private:
     void Pay(int victimIndex, int amount);
 
     template<typename T>
-    void InitDeck(const int count, const std::string& name, const int value)
+    void InitDeck(const int count, const std::string& name, const std::string& shortData, const int value)
     {
         for (int i = 0; i < count; ++i)
-            m_Deck.push_front(std::make_shared<T>(name, value));
+            m_Deck.push_front(std::make_shared<T>(name, shortData, value));
     }
 
     Players m_Players;
     Deck m_Deck;
+    Draw m_Draw;
     uint32_t m_CurrentPlayerIndex = 0;
     int m_CurrentPlayerTurnCounter = 0;
     bool m_bGameIsNotEnded = true;

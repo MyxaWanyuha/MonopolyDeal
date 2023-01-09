@@ -4,17 +4,48 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 #include "JsonConstants.h"
+#include <fstream>
 
 class ConsoleGame : public Monopoly::Game
 {
 public:
-    ConsoleGame()
+    ConsoleGame() : Game()
     {
-        int playersCount;
+        int i;
         do {
-            std::cout << "Enter players count(2-5): ";
-            std::cin >> playersCount;
-        } while (!Game::Init(playersCount));
+            std::cout << "Load(1) or new game(2):";
+            std::cin >> i;
+            if (i == 1)
+            {
+                std::cout << "Enter filename:";
+                std::string name;
+                std::cin >> name;
+                std::ifstream f(name.c_str());
+                if (f.good() == false)
+                    continue;
+                if (!Game::Load(name))
+                {
+                    std::cerr << "Can't load save!\n";
+                    exit(5);
+                }
+                return;
+            }
+            else if (i == 2)
+            {
+#if NDEBUG
+                const uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+#else
+                const uint32_t seed = 1337322228u;
+#endif
+                int playersCount;
+                do {
+                    std::cout << "Enter players count(2-5): ";
+                    std::cin >> playersCount;
+                } while (!Game::Init(playersCount, seed));
+                return;
+            }
+            std::cerr << "Incorrect input!\n";
+        } while (true);
     }
 
 private:
@@ -28,26 +59,28 @@ private:
 
     void ShowCard(const int index, const Monopoly::CardContainerElem& card) const
     {
-        std::cout << "\n";
-        if (card->GetType() == Monopoly::ECardType::Property)
-        {
-            std::cout << "\t\t\t" << index << ". Property \"" << card->GetName() << "\"\n";
-        }
-        else if (card->GetType() == Monopoly::ECardType::Money)
-        {
-            std::cout << "\t\t\t" << index << ". Money \"" << card->GetName() << "\"\n";
-        }
-        else if (card->GetType() == Monopoly::ECardType::Action)
-        {
-            std::cout << "\t\t\t" << index << ". Action \"" << card->GetName() << "\"\n";
-        }
+        std::cout << "\t\t\t" << index << ". " << card->GetShortData() << "\n";
+        
+        //std::cout << "\n";
+        //if (card->GetType() == Monopoly::ECardType::Property)
+        //{
+        //    std::cout << "\t\t\t" << index << ". Property \"" << card->GetName() << "\"\n";
+        //}
+        //else if (card->GetType() == Monopoly::ECardType::Money)
+        //{
+        //    std::cout << "\t\t\t" << index << ". Money \"" << card->GetName() << "\"\n";
+        //}
+        //else if (card->GetType() == Monopoly::ECardType::Action)
+        //{
+        //    std::cout << "\t\t\t" << index << ". Action \"" << card->GetName() << "\"\n";
+        //}
 
-        if (card->GetValue() > 0)
-            std::cout << "\t\t\tValue " << card->GetValue() << "\n";
-        if (card->GetCurrentColor() != Monopoly::EColor::None)
-            std::cout << "\t\t\tColor " << Color(card->GetCurrentColor()) << "\n";
-        if (card->GetColor2() != Monopoly::EColor::None)
-            std::cout << "\t\t\tColor for flip " << Color(card->GetColor2()) << "\n";
+        //if (card->GetValue() > 0)
+        //    std::cout << "\t\t\tValue " << card->GetValue() << "\n";
+        //if (card->GetCurrentColor() != Monopoly::EColor::None)
+        //    std::cout << "\t\t\tColor " << Color(card->GetCurrentColor()) << "\n";
+        //if (card->GetColor2() != Monopoly::EColor::None)
+        //    std::cout << "\t\t\tColor for flip " << Color(card->GetColor2()) << "\n";
     }
 
     virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const override
@@ -454,6 +487,13 @@ private:
 
     virtual void ShowPrivatePlayerData(const int index) const override
     {
+        static uint32_t saveNumber = 0;
+        Game::Save("save" + std::to_string(saveNumber++) + ".json");
+        std::cout << "Deck cards count: " << Game::GetDeckCardsCount() << "\n";
+        std::cout << "Draw: \n";
+        for (int i = 0; i < Game::GetDrawCards().size(); ++i)
+            ShowCard(i, Game::GetDrawCards()[i]);
+
         ShowPlayerData(index, false);
     }
 
@@ -494,7 +534,7 @@ private:
 #include "JSONGame.h"
 int main()
 {
-    //ConsoleGame g;
-    JSONGame g;
+    ConsoleGame g;
+    //JSONGame g;
     return g.Run();
 }

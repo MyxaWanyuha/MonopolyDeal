@@ -89,11 +89,12 @@ namespace Monopoly
     class ICard
     {
     public:
-        ICard(const std::string& name)
-            : m_Name(name)
+        ICard(const std::string& name, const std::string& data)
+            : m_Name(name), m_Data(data)
         {
         }
         const std::string& GetName() const { return m_Name; }
+        const std::string& GetShortData() const { return m_Data; }
         virtual ECardType GetType() const = 0;
         virtual EActionType GetActionType() const { return EActionType::None; }
         virtual uint32_t GetValue() const = 0;
@@ -102,13 +103,14 @@ namespace Monopoly
         virtual EColor SwapColor() { return EColor::None; }
     private:
         std::string m_Name;
+        std::string m_Data;
     };
 
     class MoneyCard : public ICard
     {
     public:
-        MoneyCard(const std::string& name, uint32_t value)
-            : ICard(name), m_Value(value)
+        MoneyCard(const std::string& name, const std::string& data, uint32_t value)
+            : ICard(name, data), m_Value(value)
         {
         }
 
@@ -121,8 +123,8 @@ namespace Monopoly
     class PropertyCard : public MoneyCard
     {
     public:
-        PropertyCard(const std::string& name, uint32_t value, const EColor color1, const EColor color2 = EColor::None)
-            : MoneyCard(name, value), m_CurrentColor(color1), m_UnusedColor(color2)
+        PropertyCard(const std::string& name, const std::string& data, uint32_t value, const EColor color1, const EColor color2 = EColor::None)
+            : MoneyCard(name, data, value), m_CurrentColor(color1), m_UnusedColor(color2)
         {
         }
         virtual ECardType GetType() const override { return ECardType::Property; }
@@ -143,8 +145,8 @@ namespace Monopoly
     class ActionCard : public MoneyCard
     {
     public:
-        ActionCard(const std::string& name, uint32_t value)
-            : MoneyCard(name, value)
+        ActionCard(const std::string& name, const std::string& data, uint32_t value)
+            : MoneyCard(name, data, value)
         {
         }
 
@@ -157,8 +159,8 @@ namespace Monopoly
     class Type_##Card : public ActionCard \
     { \
     public: \
-        Type_##Card(const std::string& name, uint32_t value) \
-            : ActionCard(name, value) {} \
+        Type_##Card(const std::string& name, const std::string& data, uint32_t value) \
+            : ActionCard(name, data, value) {} \
         virtual EActionType GetActionType() const override { return EActionType::Type_; } \
     }; \
 
@@ -179,8 +181,8 @@ namespace Monopoly
     class Type_ : public ActionCard \
     { \
     public: \
-        Type_(const std::string& name, uint32_t value) \
-            : ActionCard(name, value) { } \
+        Type_(const std::string& name, const std::string& data, uint32_t value) \
+            : ActionCard(name, data, value) { } \
         virtual EActionType GetActionType() const override { return EActionType::Type_; } \
         virtual EColor GetCurrentColor() const override { return Color1_; } \
         virtual EColor GetColor2() const override { return Color2_; } \
