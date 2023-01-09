@@ -5,6 +5,13 @@ using namespace Monopoly;
 
 class JSONGame : public Game
 {
+public:
+    JSONGame()
+    {
+        int playersCount = 2;
+        Game::Init(playersCount);
+    }
+private:
     virtual void ShowPublicPlayerData(const int index) const override;
     virtual void ShowPrivatePlayerData(const int index) const override;
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) override;

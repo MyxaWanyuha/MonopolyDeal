@@ -96,7 +96,6 @@ void JSONGame::InputIndexesToRemove(const int extraCardsCount, std::vector<int>&
 {
     json input;
     std::cin >> input;
-
 }
 
 void JSONGame::InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const

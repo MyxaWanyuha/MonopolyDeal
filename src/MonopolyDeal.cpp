@@ -491,8 +491,10 @@ private:
 
 };
 
+#include "JSONGame.h"
 int main()
 {
-    ConsoleGame g;
+    //ConsoleGame g;
+    JSONGame g;
     return g.Run();
 }

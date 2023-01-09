@@ -8,16 +8,17 @@ class Game
 {
     using Players = std::vector<Player>;
     using Deck = std::deque<CardContainerElem>;
-    static const uint32_t c_MinPlayersCount = 2;
-    static const uint32_t c_MaxPlayersCount = 5;
-    static const int c_StartCardsCount = 5;
-    static const int c_TurnCardsCount = 3;
-    static const int c_PassGoCardsCount = 2;
-    static const int c_MaxCardsCountInTurnEnd = 7;
-    static const int c_ItsMyBirthdayAmount = 2;
-    static const int c_DebtCollectorAmount = 5;
+    static constexpr uint32_t c_MinPlayersCount = 2;
+    static constexpr uint32_t c_MaxPlayersCount = 5;
+    static constexpr int c_StartCardsCount = 5;
+    static constexpr int c_TurnCardsCount = 3;
+    static constexpr int c_PassGoCardsCount = 2;
+    static constexpr int c_MaxCardsCountInTurnEnd = 7;
+    static constexpr int c_ItsMyBirthdayAmount = 2;
+    static constexpr int c_DebtCollectorAmount = 5;
 public:
-    static const int c_FullSetsCountForWin = 3;
+    virtual ~Game() = default;
+    static constexpr int c_FullSetsCountForWin = 3;
     int Run();
 
 protected:
@@ -79,7 +80,7 @@ private:
     void PlayerTakeCardsFromDeck(Player& player, const int count);
 
     // Action cards process
-    ETurnOutput ProcessActionCard(Player& currentPlayer, CardContainerElem& card);
+    ETurnOutput ProcessActionCard(Player& currentPlayer, const CardContainerElem& card);
     ETurnOutput PassGo(Player& player);
     ETurnOutput Enhancement(Player& player, const CardContainerElem& card);
     ETurnOutput DealBreaker(Player& player, const CardContainerElem& card);

@@ -1,61 +1,61 @@
-Name;CardType;Value;Count;Color;SecondColor;ActionType
-Pass Go;Action;1;10;None;None;PassGo
-Double The Rent;Action;1;2;None;None;DoubleTheRent
-Just Say No;Action;4;3;None;None;JustSayNo
-Hotel;Action;4;2;None;None;Hotel
-House;Action;3;3;None;None;House
-Deal Breaker;Action;5;2;None;None;DealBreaker
-Sly Deal;Action;3;3;None;None;SlyDeal
-Forced Deal;Action;3;3;None;None;ForcedDeal
-It's My Birthday;Action;2;3;None;None;ItsMyBirthday
-Debt Collector;Action;3;3;None;None;DebtCollector
-Rent Wild;Action;3;3;All;None;RentWild
-Rent Light Blue-Brown;Action;1;2;LightBlue;Brown;RentLightBlueBrown
-Rent Orange-Pink;Action;1;2;Orange;Pink;RentOrangePink
-Rent Yellow-Red;Action;1;2;Yellow;Red;RentYellowRed
-Rent Utility-Railroad;Action;1;2;Utility;Railroad;RentUtilityRailroad
-Rent Blue-Green;Action;1;2;Blue;Green;RentBlueGreen
-Ten Million;Money;10;1;None;None;None
-One Million;Money;1;6;None;None;None
-Two Million;Money;2;5;None;None;None
-Three Million;Money;3;3;None;None;None
-Four Million;Money;4;3;None;None;None
-Five Million;Money;5;2;None;None;None
-Atlantic Avenue;Property;3;1;Yellow;None;None
-Baltic Avenue;Property;1;1;Brown;None;None
-B & O Railroad;Property;2;1;Railroad;None;None
-Boardwalk;Property;4;1;Blue;None;None
-Connecticut Avenue;Property;1;1;LightBlue;None;None
-Electric Company;Property;2;1;Utility;None;None
-Illinois Avenue;Property;3;1;Red;None;None
-Indiana Avenue;Property;3;1;Red;None;None
-Kentucky Avenue;Property;3;1;Red;None;None
-Marvin Gardens;Property;3;1;Yellow;None;None
-Mediterranean Avenue;Property;1;1;Brown;None;None
-New York Avenue;Property;2;1;Orange;None;None
-North Carolina Avenue;Property;4;1;Green;None;None
-Oriental Avenue;Property;1;1;LightBlue;None;None
-Pacific Avenue;Property;4;1;Green;None;None
-Park Place;Property;4;1;Blue;None;None
-Pennsylvania Avenue;Property;4;1;Green;None;None
-Pennsylvania Railroad;Property;2;1;Railroad;None;None
-Property Wild Card;Property;0;2;Wild;None;None
-Reading Railroad;Property;2;1;Railroad;None;None
-Short Line;Property;2;1;Railroad;None;None
-States Avenue;Property;2;1;Pink;None;None
-St. Charles Place;Property;2;1;Pink;None;None
-St. James Place;Property;2;1;Orange;None;None
-Tennessee Avenue;Property;2;1;Orange;None;None
-Ventnor Avenue;Property;3;1;Yellow;None;None
-Vermont Avenue;Property;1;1;LightBlue;None;None
-Virginia Avenue;Property;2;1;Pink;None;None
-Water Works;Property;2;1;Utility;None;None
-Wild Blue-Green;Property;4;1;Blue;Green;None
-Wild Railroad-Green;Property;4;1;Railroad;Green;None
-Wild Light Blue-Brown;Property;1;1;LightBlue;Brown;None
-Wild Railroad-Light Blue;Property;4;1;Railroad;LightBlue;None
-Wild Orange-Pink;Property;2;2;Orange;Pink;None
-Wild Yellow-Red;Property;3;2;Yellow;Red;None
-Wild Utility-Railroad;Property;2;1;Utility;Railroad;None
-Card Back;;;0;;;
-;;;106;;;
+Name;CardType;Value;Count;Color;SecondColor;ActionType;
+Pass Go;Action;1;10;None;None;PassGo;aPG
+Double The Rent;Action;1;2;None;None;DoubleTheRent;aDTR
+Just Say No;Action;4;3;None;None;JustSayNo;aJSN
+Hotel;Action;4;2;None;None;Hotel;aHt
+House;Action;3;3;None;None;House;aHu
+Deal Breaker;Action;5;2;None;None;DealBreaker;aDB
+Sly Deal;Action;3;3;None;None;SlyDeal;aSD
+Forced Deal;Action;3;3;None;None;ForcedDeal;aFD
+It's My Birthday;Action;2;3;None;None;ItsMyBirthday;aIMB
+Debt Collector;Action;3;3;None;None;DebtCollector;aDC
+Rent Wild;Action;3;3;All;None;RentWild;aRW
+Rent Light Blue-Brown;Action;1;2;LightBlue;Brown;RentLightBlueBrown;aRLbBr
+Rent Orange-Pink;Action;1;2;Orange;Pink;RentOrangePink;aROP
+Rent Yellow-Red;Action;1;2;Yellow;Red;RentYellowRed;aRYR
+Rent Utility-Railroad;Action;1;2;Utility;Railroad;RentUtilityRailroad;aRURa
+Rent Blue-Green;Action;1;2;Blue;Green;RentBlueGreen;aRBG
+Ten Million;Money;10;1;None;None;None;m10
+One Million;Money;1;6;None;None;None;m1
+Two Million;Money;2;5;None;None;None;m2
+Three Million;Money;3;3;None;None;None;m3
+Four Million;Money;4;3;None;None;None;m4
+Five Million;Money;5;2;None;None;None;m5
+Atlantic Avenue;Property;3;1;Yellow;None;None;pY3
+Baltic Avenue;Property;1;1;Brown;None;None;pBr1
+B & O Railroad;Property;2;1;Railroad;None;None;pRa2
+Boardwalk;Property;4;1;Blue;None;None;pB4
+Connecticut Avenue;Property;1;1;LightBlue;None;None;pLb1
+Electric Company;Property;2;1;Utility;None;None;pU2
+Illinois Avenue;Property;3;1;Red;None;None;pR3
+Indiana Avenue;Property;3;1;Red;None;None;pR3
+Kentucky Avenue;Property;3;1;Red;None;None;pR3
+Marvin Gardens;Property;3;1;Yellow;None;None;pY3
+Mediterranean Avenue;Property;1;1;Brown;None;None;pBr1
+New York Avenue;Property;2;1;Orange;None;None;pO2
+North Carolina Avenue;Property;4;1;Green;None;None;pG4
+Oriental Avenue;Property;1;1;LightBlue;None;None;pLb1
+Pacific Avenue;Property;4;1;Green;None;None;pG4
+Park Place;Property;4;1;Blue;None;None;pB4
+Pennsylvania Avenue;Property;4;1;Green;None;None;pG4
+Pennsylvania Railroad;Property;2;1;Railroad;None;None;pRa2
+Property Wild Card;Property;0;2;Wild;None;None;pW0
+Reading Railroad;Property;2;1;Railroad;None;None;pRa2
+Short Line;Property;2;1;Railroad;None;None;pRa2
+States Avenue;Property;2;1;Pink;None;None;pP2
+St. Charles Place;Property;2;1;Pink;None;None;pP2
+St. James Place;Property;2;1;Orange;None;None;pO2
+Tennessee Avenue;Property;2;1;Orange;None;None;pO2
+Ventnor Avenue;Property;3;1;Yellow;None;None;pY3
+Vermont Avenue;Property;1;1;LightBlue;None;None;pLb1
+Virginia Avenue;Property;2;1;Pink;None;None;pP2
+Water Works;Property;2;1;Utility;None;None;pU2
+Wild Blue-Green;Property;4;1;Blue;Green;None;pBG4
+Wild Railroad-Green;Property;4;1;Railroad;Green;None;pRaG4
+Wild Light Blue-Brown;Property;1;1;LightBlue;Brown;None;pLbBr1
+Wild Railroad-Light Blue;Property;4;1;Railroad;LightBlue;None;pRaLb4
+Wild Orange-Pink;Property;2;2;Orange;Pink;None;pOP2
+Wild Yellow-Red;Property;3;2;Yellow;Red;None;pYR3
+Wild Utility-Railroad;Property;2;1;Utility;Railroad;None;pURa2
+Card Back;;;0;;;;
+;;;106;;;;
