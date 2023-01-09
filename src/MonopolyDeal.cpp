@@ -9,43 +9,23 @@ using json = nlohmann::json;
 class ConsoleGame : public Monopoly::Game
 {
 public:
-    ConsoleGame() : Game()
+    ConsoleGame(const std::string& fileName)
+        : Game(fileName)
     {
-        int i;
-        do {
-            std::cout << "Load(1) or new game(2):";
-            std::cin >> i;
-            if (i == 1)
-            {
-                std::cout << "Enter filename:";
-                std::string name;
-                std::cin >> name;
-                std::ifstream f(name.c_str());
-                if (f.good() == false)
-                    continue;
-                if (!Game::Load(name))
-                {
-                    std::cerr << "Can't load save!\n";
-                    exit(5);
-                }
-                return;
-            }
-            else if (i == 2)
-            {
+    }
+
+    ConsoleGame()
+    {
 #if NDEBUG
-                const uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
+        const uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 #else
-                const uint32_t seed = 1337322228u;
+        const uint32_t seed = 1337322228u;
 #endif
-                int playersCount;
-                do {
-                    std::cout << "Enter players count(2-5): ";
-                    std::cin >> playersCount;
-                } while (!Game::Init(playersCount, seed));
-                return;
-            }
-            std::cerr << "Incorrect input!\n";
-        } while (true);
+        int playersCount;
+        do {
+            std::cout << "Enter players count(2-5): ";
+            std::cin >> playersCount;
+        } while (!Game::Init(playersCount, seed));
     }
 
 private:
@@ -531,10 +511,32 @@ private:
 
 };
 
-#include "JSONGame.h"
 int main()
 {
-    ConsoleGame g;
-    //JSONGame g;
-    return g.Run();
+    std::unique_ptr<ConsoleGame> g;
+
+    int input;
+    while (true)
+    {
+        std::cout << "Load(1) or new game(2):";
+        std::cin >> input;
+        if (input == 1)
+        {
+            std::cout << "Enter filename:";
+            std::string name;
+            std::cin >> name;
+            std::ifstream f(name.c_str());
+            if (f.good() == false)
+                continue;
+            g = std::make_unique<ConsoleGame>(name);
+            break;
+        }
+        else if (input == 2)
+        {
+            g = std::make_unique<ConsoleGame>();
+            break;
+        }
+        std::cerr << "Incorrect input!\n";
+    }
+    return g->Run();
 }

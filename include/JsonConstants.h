@@ -11,8 +11,14 @@ namespace Monopoly
     static const char* c_JSON_Hand                     = "Hand";
     static const char* c_JSON_Bank                     = "Bank";
     static const char* c_JSON_Sets                     = "Sets";
+    
+    static const char* c_JSON_SetCards                 = "SetCards";
+    static const char* c_JSON_SetHotel                 = "SetHotel";
+    static const char* c_JSON_SetHouse                 = "SetHouse";
+    static const char* c_JSON_SetColor                 = "SetColor";
                                                       
     static const char* c_JSON_Card_Name                = "Name";
+    static const char* c_JSON_Card_ShortData           = "ShortData";
     static const char* c_JSON_Card_Type                = "Type";
     static const char* c_JSON_Card_Value               = "Value";
     static const char* c_JSON_Card_Color               = "Color";
@@ -22,4 +28,5 @@ namespace Monopoly
     static const char* c_JSON_Card_Type_Money          = "Money";
     static const char* c_JSON_Card_Type_Action         = "Action";
     static const char* c_JSON_Card_Type_Property       = "Property";
+
 }

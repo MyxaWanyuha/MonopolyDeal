@@ -148,6 +148,11 @@ namespace Monopoly
         return m_Hand.GetAndErase(cardIndex);
     }
 
+    void Player::AddCardToHand(const CardContainerElem& card)
+    {
+        m_Hand.emplace_back(card);
+    }
+
     void Player::RemoveAllFromBank()
     {
         m_Bank.clear();

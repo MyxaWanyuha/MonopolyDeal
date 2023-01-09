@@ -101,6 +101,11 @@ namespace Monopoly
         assert(m_Deck.size() == 106);// all cards readed
     }
 
+    Game::Game(const std::string& fileName)
+    {
+        Load(fileName);
+    }
+
     bool Game::Init(const uint32_t playersCount, const uint32_t seed)
     {
         std::shuffle(m_Deck.begin(), m_Deck.end(), std::default_random_engine(seed));
@@ -279,8 +284,8 @@ namespace Monopoly
             }
         }
 
-        if ((!emptyHouseSetsIndexes.empty() && !fullSetsWithoutHouseIndexes.empty()) || (!emptyHotelSetsIndexes.empty()
-            && !fullSetsWithoutHotelsIndexes.empty()))
+        if ((!emptyHouseSetsIndexes.empty() && !fullSetsWithoutHouseIndexes.empty()) 
+            || (!emptyHotelSetsIndexes.empty() && !fullSetsWithoutHotelsIndexes.empty()))
         {
             int emptyIndex, setIndex;
             InputMoveHouseHotelFromTableToFullSet(emptyHouseSetsIndexes, emptyHotelSetsIndexes,
@@ -636,16 +641,56 @@ namespace Monopoly
         save[c_JSON_CurrentPlayerIndex] = m_CurrentPlayerIndex;
         save[c_JSON_CurrentPlayerTurnCounter] = m_CurrentPlayerTurnCounter;
 
+        auto CardToJson = [](const CardContainerElem& card)
+        {
+            auto GetStrByColor = [](const EColor& color)
+            {
+                for (auto it = c_ColorStrToEnum.begin(); it != c_ColorStrToEnum.end(); ++it)
+                {
+                    if (it->second == color)
+                    {
+                        return it->first;
+                    }
+                }
+                assert("Wrong color!");
+                return std::string_view("");
+            };
+            json result;
+            result[c_JSON_Card_Name] = card->GetName();
+            result[c_JSON_Card_ShortData] = card->GetShortData();
+            result[c_JSON_Card_Value] = card->GetValue();
+            if (card->GetType() == ECardType::Money)
+            {
+                result[c_JSON_Card_Type] = c_JSON_Card_Type_Money;
+            }
+            else if (card->GetType() == ECardType::Action)
+            {
+                result[c_JSON_Card_Type] = c_JSON_Card_Type_Action;
+                result[c_JSON_Card_Action] = c_ActionTypeEnumToStr.at(card->GetActionType());
+            }
+            else if (card->GetType() == ECardType::Property)
+            {
+                result[c_JSON_Card_Type] = c_JSON_Card_Type_Property;
+                result[c_JSON_Card_Color] = GetStrByColor(card->GetCurrentColor());
+                result[c_JSON_Card_SecondColor] = GetStrByColor(card->GetColor2());
+            }
+            else
+            {
+                assert("ECardType is None!");
+            }
+            return result;
+        };
+
         {
             json deck;
             for (const auto& e : m_Deck)
-                deck += e->GetShortData();
+                deck += CardToJson(e);
             save[c_JSON_Deck] = deck;
         }
         {
             json draw;
             for (const auto& e : m_Draw)
-                draw += e->GetShortData();
+                draw += CardToJson(e);
             save[c_JSON_Draw] = draw;
         }
 
@@ -657,7 +702,7 @@ namespace Monopoly
             {
                 json cardsData;
                 for (const auto& card : cards)
-                    cardsData += card->GetShortData();
+                    cardsData += CardToJson(card);
                 playerData[jsonKey] = cardsData;
             };
 
@@ -668,9 +713,15 @@ namespace Monopoly
                 json setsData;
                 for (int j = 0; j < sets.size(); ++j)
                 {
-                    json setjson;
+                    json setCards;
                     for (const auto& card : sets[j].GetCards())
-                        setjson += card->GetShortData();
+                        setCards += CardToJson(card);
+
+                    json setjson;
+                    setjson[c_JSON_SetCards] = setCards;
+                    setjson[c_JSON_SetHouse] = sets[j].IsHasHouse() ? CardToJson(sets[j].GetHouse()) : nullptr;
+                    setjson[c_JSON_SetHotel] = sets[j].IsHasHotel() ? CardToJson(sets[j].GetHotel()) : nullptr;
+                    setjson[c_JSON_SetColor] = static_cast<int>(sets[j].GetColor());
                     setsData += setjson;
                 }
                 playerData[c_JSON_Sets] = setsData;
@@ -682,13 +733,121 @@ namespace Monopoly
         file << save;
     }
 
-    bool Game::Load(const std::string& fileName)
+    CardContainerElem MakeCard(const json& card)
+    {
+        std::string type = card[c_JSON_Card_Type];
+        std::string name = card[c_JSON_Card_Name];
+        name.shrink_to_fit();
+        std::string shortData = card[c_JSON_Card_ShortData];
+        shortData.shrink_to_fit();
+        int value = card[c_JSON_Card_Value];
+        if (type == c_JSON_Card_Type_Property)
+        {
+            std::string_view col = card[c_JSON_Card_Color];
+            auto color1 = c_ColorStrToEnum.at(col);
+            col = card[c_JSON_Card_SecondColor];
+            auto color2 = c_ColorStrToEnum.at(col);
+            return std::make_shared<PropertyCard>(name, shortData,
+                value, color1, color2);
+        }
+        else if (type == c_JSON_Card_Type_Action)
+        {
+            std::string_view actionType = card[c_JSON_Card_Action];
+            if (actionType == "PassGo")
+                return  std::make_shared<PassGoCard>(name, shortData, value);
+            else if (actionType == "DoubleTheRent")
+                return std::make_shared<DoubleTheRentCard>(name, shortData, value);
+            else if (actionType == "JustSayNo")
+                return std::make_shared<JustSayNoCard>(name, shortData, value);
+            else if (actionType == "Hotel")
+                return std::make_shared<HotelCard>(name, shortData, value);
+            else if (actionType == "House")
+                return std::make_shared<HouseCard>(name, shortData, value);
+            else if (actionType == "DealBreaker")
+                return std::make_shared<DealBreakerCard>(name, shortData, value);
+            else if (actionType == "SlyDeal")
+                return std::make_shared<SlyDealCard>(name, shortData, value);
+            else if (actionType == "ForcedDeal")
+                return std::make_shared<ForcedDealCard>(name, shortData, value);
+            else if (actionType == "ItsMyBirthday")
+                return std::make_shared<ItsMyBirthdayCard>(name, shortData, value);
+            else if (actionType == "DebtCollector")
+                return std::make_shared<DebtCollectorCard>(name, shortData, value);
+            else if (actionType == "RentWild")
+                return std::make_shared<RentWildCard>(name, shortData, value);
+            else if (actionType == "RentLightBlueBrown")
+                return std::make_shared<RentLightBlueBrown>(name, shortData, value);
+            else if (actionType == "RentOrangePink")
+                return std::make_shared<RentOrangePink>(name, shortData, value);
+            else if (actionType == "RentYellowRed")
+                return std::make_shared<RentYellowRed>(name, shortData, value);
+            else if (actionType == "RentUtilityRailroad")
+                return std::make_shared<RentUtilityRailroad>(name, shortData, value);
+            else if (actionType == "RentBlueGreen")
+                return std::make_shared<RentBlueGreen>(name, shortData, value);
+        }
+        else
+        {
+            return std::make_shared<MoneyCard>(name, shortData, value);
+        }
+    }
+
+    void Game::Load(const std::string& fileName)
     {
         std::ifstream ifs(fileName);
-        json jf = json::parse(ifs);
-        // TODO
+        if (ifs.is_open() == false)
+        {
+            std::cerr << "Can't load save!\n";
+            exit(5);
+        }
+        const auto save = json::parse(ifs);
+        
+        m_CurrentPlayerIndex = save[c_JSON_CurrentPlayerIndex];
+        m_CurrentPlayerTurnCounter = save[c_JSON_CurrentPlayerTurnCounter];
 
-        return true;
+        if (const auto& deck = save[c_JSON_Deck]; deck.is_null() == false)
+            for (const auto& card : deck)
+                m_Deck.push_back(MakeCard(card));
+
+        if (const auto& draw = save[c_JSON_Draw]; draw.is_null() == false)
+            for (const auto& card : draw)
+                m_Draw.push_back(MakeCard(card));
+
+        const auto players = save[c_JSON_Players];
+        for (const auto& player : players)
+        {
+            Player p;
+            if (const auto& bank = player[c_JSON_Bank]; bank.is_null() == false)
+                for (const auto& card : bank)
+                    p.AddCardToBank(MakeCard(card));
+
+            if (const auto& hand = player[c_JSON_Hand]; hand.is_null() == false)
+                for (const auto& card : hand)
+                    p.AddCardToHand(MakeCard(card));
+
+            if (const auto& sets = player[c_JSON_Sets]; sets.is_null() == false)
+            {
+                for (const auto& set : sets)
+                {
+                    CardContainer cards;
+                    CardContainerElem house = nullptr;
+                    CardContainerElem hotel = nullptr;
+
+                    if (auto cardsJson = set[c_JSON_SetCards]; cardsJson.is_null() == false)
+                        for (const auto& card : cardsJson)
+                            cards.push_back(MakeCard(card));
+
+                    if (auto houseJson = set[c_JSON_SetHouse]; houseJson.is_null() == false)
+                        house = MakeCard(houseJson);
+                    if (auto hotelJson = set[c_JSON_SetHotel]; hotelJson.is_null() == false)
+                        hotel = MakeCard(hotelJson);
+
+                    EColor color = set[c_JSON_SetColor];
+                    p.AddSet(CardSet(std::move(cards), std::move(house), std::move(hotel), color));
+                }
+            }
+            m_Players.push_back(std::move(p));
+        }
     }
 
 }

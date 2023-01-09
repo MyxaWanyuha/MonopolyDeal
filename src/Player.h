@@ -23,6 +23,7 @@ namespace Monopoly
         bool AddHotelToCardSet(int setIndex, const CardContainerElem& card);
         
         CardContainerElem RemoveCardFromHand(const int cardIndex);
+        void AddCardToHand(const CardContainerElem& card);
         void AddCardsToHand(CardContainer&& cards);
         CardContainer RemoveCardsFromHand(const std::vector<int>& cardIndices);
 

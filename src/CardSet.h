@@ -47,6 +47,10 @@ namespace Monopoly
     {
     public:
         CardSet(const CardContainerElem& card);
+        CardSet(CardContainer&& cards, CardContainerElem&& house, CardContainerElem&& hotel, const EColor color)
+            : m_Cards(cards), m_House(house), m_Hotel(hotel), m_Color(color)
+        {
+        }
         const CardContainer& GetCards() const { return m_Cards; }
         void AddProperty(const CardContainerElem& card);
         bool IsEmpty() const { return !IsHasHouse() && !IsHasHotel() && m_Cards.size() == 0; }
@@ -62,6 +66,8 @@ namespace Monopoly
         bool IsHasHotel() const;
         int GetPayValue() const;
 
+        const CardContainerElem& GetHouse() const { return m_House; }
+        const CardContainerElem& GetHotel() const { return m_Hotel; }
     private:
         CardContainer m_Cards;
         CardContainerElem m_House = nullptr;

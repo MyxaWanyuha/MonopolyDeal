@@ -24,6 +24,7 @@ public:
 
 protected:
     Game();
+    Game(const std::string& fileName);
     bool Init(const uint32_t playersCount, const uint32_t seed);
     size_t GetDeckCardsCount() const { return m_Deck.size(); }
     const Draw& GetDrawCards() const { return m_Draw; }
@@ -32,7 +33,7 @@ protected:
     const Players& GetPlayers() const { return m_Players; }
 
     void Save(const std::string& fileName) const;
-    bool Load(const std::string& fileName);
+    void Load(const std::string& fileName);
 
     enum class ETurn : int
     {
