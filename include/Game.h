@@ -78,6 +78,7 @@ protected:
     virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
     virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const = 0;
     void GameBody();
+    int GetDoubleTheRentCountMayUse(const Player& player) const;
 private:
     void BeginTurn();
     ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);

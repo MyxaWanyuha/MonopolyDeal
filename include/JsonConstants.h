@@ -29,4 +29,16 @@ namespace Monopoly
     static const char* c_JSON_Card_Type_Action         = "Action";
     static const char* c_JSON_Card_Type_Property       = "Property";
 
+
+    static const char* c_JSON_Command                  = "Command";
+    static const char* c_JSON_CardIndex                = "CardIndex";
+    static const char* c_JSON_ActionCommand            = "ActionCommand";
+    static const char* c_JSON_VictimSetIndex           = "SetIndex";
+    static const char* c_JSON_VictimPropertyIndexInSet = "PropertyIndexInSet";
+    static const char* c_JSON_VictimIndex              = "VictimIndex";
+
+    static const char* c_JSON_PlayerSetIndex           = "SetIndex";
+    static const char* c_JSON_PlayerPropertyIndexInSet = "PropertyIndexInSet";
+
+    static const char* c_JSON_DoubleTheRentUseCount    = "DoubleTheRentUseCount";
 }

@@ -41,6 +41,13 @@ namespace Monopoly
             remove(nullptr);
             return cards;
         }
+
+        const CardContainerElem& operator[](const int index) const
+        {
+            auto it = begin();
+            std::advance(it, index);
+            return *it;
+        }
     };
 
     class CardSet

@@ -554,29 +554,20 @@ namespace Monopoly
 
     int Game::DoubleTheRent(Player& player, int& payValue)
     {
-        int doubleTheRentCount = 0;
-        for (const auto& e : player.GetCardsInHand())
-        {
-            if (e->GetActionType() == EActionType::DoubleTheRent)
-            {
-                ++doubleTheRentCount;
-            }
-        }
+        if (m_CurrentPlayerTurnCounter <= 1) return 0;
+
+        int doubleTheRentCount = GetDoubleTheRentCountMayUse(player);
         int howManyCardsToUse = 0;
-        // TODO DTR is a turn
-        // TODO check m_CurrentPlayerTurnCounter
-        // TODO m_CurrentPlayerTurnCounter--
         if (doubleTheRentCount > 0)
         {
             InputDoubleTheRent(doubleTheRentCount, howManyCardsToUse);
+            m_CurrentPlayerTurnCounter -= howManyCardsToUse;
             for (int i = 0; i < howManyCardsToUse; ++i)
             {
                 payValue *= 2;
                 for (int j = 0; j < player.GetCardsInHand().size(); ++j)
                 {
-                    auto e = player.GetCardsInHand().begin();
-                    std::advance(e, j);
-                    if ((*e)->GetActionType() == EActionType::DoubleTheRent)
+                    if (player.GetCardsInHand()[j]->GetActionType() == EActionType::DoubleTheRent)
                     {
                         const auto card = player.RemoveCardFromHand(j);
                         m_Draw.emplace_back(card);
@@ -585,6 +576,19 @@ namespace Monopoly
             }
         }
         return howManyCardsToUse;
+    }
+
+    int Game::GetDoubleTheRentCountMayUse(const Player& player) const
+    {
+        int res = 0;
+        for (const auto& e : player.GetCardsInHand())
+        {
+            if (e->GetActionType() == EActionType::DoubleTheRent)
+            {
+                ++res;
+            }
+        }
+        return std::min(m_CurrentPlayerTurnCounter - 1, res);
     }
 
     void Game::JustSayNoDoubleTheRent(const int howManyCardsToUse, const int victimIndex, int& payValue)

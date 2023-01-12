@@ -28,6 +28,277 @@ public:
         } while (!Game::Init(playersCount, seed));
     }
 
+    json GetAllValidPlayerTurns(int index) const
+    {
+        json turns;
+        turns += {Monopoly::c_JSON_Command, ETurn::Pass};
+        const auto& player = Game::GetPlayers()[index];
+
+        for (int i = 0; i < player.GetCardsInHand().size(); ++i)
+        {
+            const auto& card = player.GetCardsInHand()[i];
+            if (card->GetType() == Monopoly::ECardType::Money || card->GetType() == Monopoly::ECardType::Property)
+            {
+                turns += { {Monopoly::c_JSON_Command, ETurn::PlayCard}, { Monopoly::c_JSON_CardIndex, i } };
+            }
+            else if (card->GetType() == Monopoly::ECardType::Action)
+            {
+                auto extra = ExtraActionInformation(card, player);
+
+                json eCopy;
+                eCopy[Monopoly::c_JSON_Command] = ETurn::PlayCard;
+                eCopy[Monopoly::c_JSON_CardIndex] = i;
+                eCopy[Monopoly::c_JSON_ActionCommand] = Monopoly::Game::EActionInput::ToBank;
+                turns += eCopy;
+
+                for (auto& e : extra)
+                {
+                    eCopy[Monopoly::c_JSON_ActionCommand] = Monopoly::Game::EActionInput::Play;
+                    eCopy.merge_patch(e);
+                    turns += eCopy;
+                }
+            }
+        }
+        return turns;
+    }
+
+    json ExtraActionInformation(const Monopoly::CardContainerElem& card, const Monopoly::Player& player) const
+    {
+        json res;
+        switch (card->GetActionType())
+        {
+            case Monopoly::EActionType::PassGo:
+            {}break;
+            case Monopoly::EActionType::DoubleTheRent:
+            {}break;
+            case Monopoly::EActionType::JustSayNo:
+            {}break;
+            case Monopoly::EActionType::Hotel:
+            {
+                for (int i = 0; i < player.GetCardSets().size(); ++i)
+                {
+                    const auto& set = player.GetCardSets()[i];
+                    if (set.IsFull() && set.IsHasHouse() && !set.IsHasHotel())
+                    {
+                        json v;
+                        v[Monopoly::c_JSON_VictimSetIndex] = i;
+                        res += v;
+                    }
+                }
+            }break;
+            case Monopoly::EActionType::House:
+            {
+                for (int i = 0; i < player.GetCardSets().size(); ++i)
+                {
+                    const auto& set = player.GetCardSets()[i];
+                    if (set.IsFull() && !set.IsHasHouse())
+                    {
+                        json v;
+                        v[Monopoly::c_JSON_VictimSetIndex] = i;
+                        res += v;
+                    }
+                }
+            }break;
+            case Monopoly::EActionType::DealBreaker:
+            {
+                for (int p = 0; p < Game::GetPlayersCount(); ++p)
+                {
+                    const auto& victim = Game::GetPlayers()[p];
+                    if (&victim == &player) continue;
+
+                    for (int i = 0; i < victim.GetCardSets().size(); ++i)
+                    {
+                        if (victim.GetCardSets()[i].IsFull())
+                        {
+                            json v;
+                            v[Monopoly::c_JSON_VictimIndex] = p;
+                            v[Monopoly::c_JSON_VictimSetIndex] = i;
+                            res += v;
+                        }
+                    }
+                }
+            }break;
+            case Monopoly::EActionType::SlyDeal:
+            {
+                for (int p = 0; p < Game::GetPlayersCount(); ++p)
+                {
+                    const auto& victim = Game::GetPlayers()[p];
+                    if (&victim == &player) continue;
+                    for (int i = 0; i < victim.GetCardSets().size(); ++i)
+                    {
+                        const auto& set = victim.GetCardSets()[i];
+                        if (set.IsFull()) continue;
+                        for(int j = 0; j < set.GetCards().size(); ++j)
+                        {
+                            json v;
+                            v[Monopoly::c_JSON_VictimIndex] = p;
+                            v[Monopoly::c_JSON_VictimSetIndex] = i;
+                            v[Monopoly::c_JSON_VictimPropertyIndexInSet] = j;
+                            res += v;
+                        }
+                    }
+                }
+            }break;
+            case Monopoly::EActionType::ForcedDeal:
+            {
+                json playerProperties;
+                for (int i = 0; i < player.GetCardSets().size(); ++i)
+                {
+                    const auto& set = player.GetCardSets()[i];
+                    if (set.IsFull()) continue;
+                    for (int j = 0; j < set.GetCards().size(); ++j)
+                    {
+                        json v;
+                        v[Monopoly::c_JSON_PlayerSetIndex] = i;
+                        v[Monopoly::c_JSON_PlayerPropertyIndexInSet] = j;
+                        playerProperties += v;
+                    }
+                }
+                if (playerProperties.empty()) break;
+
+                for (int p = 0; p < Game::GetPlayersCount(); ++p)
+                {
+                    const auto& victim = Game::GetPlayers()[p];
+                    if (&victim == &player) continue;
+
+                    for (int i = 0; i < victim.GetCardSets().size(); ++i)
+                    {
+                        const auto& set = victim.GetCardSets()[i];
+                        if (set.IsFull()) continue;
+                        for (int j = 0; j < set.GetCards().size(); ++j)
+                        {
+                            for (const auto& e : playerProperties)
+                            {
+                                json turn = e;
+                                json v;
+                                v[Monopoly::c_JSON_VictimIndex] = p;
+                                v[Monopoly::c_JSON_VictimSetIndex] = i;
+                                v[Monopoly::c_JSON_VictimPropertyIndexInSet] = j;
+                                turn.merge_patch(v);
+                                res += turn;
+                            }
+                        }
+                    }
+                }
+            }break;
+            case Monopoly::EActionType::ItsMyBirthday:
+            {}break;
+            case Monopoly::EActionType::DebtCollector:
+            {
+                for (int i = 0; i < Game::GetPlayersCount(); ++i)
+                {
+                    const auto& victim = Game::GetPlayers()[i];
+                    if (&victim == &player) continue;
+                    json v;
+                    v[Monopoly::c_JSON_VictimIndex] = i;
+                    res += v;
+                }
+            }break;
+            case Monopoly::EActionType::RentWild:
+            {
+                json dtr = GetDoubleTheRentMayUse(player);
+                json sets;
+                for (int i = 0; i < player.GetCardSets().size(); ++i)
+                {
+                    json v;
+                    v[Monopoly::c_JSON_PlayerSetIndex] = i;
+                    sets += v;
+                }
+                if (sets.empty()) break;
+
+                for (int i = 0; i < Game::GetPlayersCount(); ++i)
+                {
+                    if (&Game::GetPlayers()[i] == &player) continue;
+                    json victim;
+                    victim[Monopoly::c_JSON_VictimIndex] = i;
+                    for (const auto& set : sets)
+                    {
+                        json victimSet = victim;
+                        victimSet.merge_patch(set);
+
+                        if (dtr.empty())
+                        {
+                            res += victimSet;
+                        }
+                        else
+                        {
+                            for (const auto& d : dtr)
+                            {
+                                json victimSetDTR = victimSet;
+                                victimSetDTR.merge_patch(d);
+                                res += victimSetDTR;
+                            }
+                        }
+                    }
+                }
+            }break;
+            case Monopoly::EActionType::RentLightBlueBrown:
+            {
+                RentTwoColorAction(player, Monopoly::EColor::LightBlue, Monopoly::EColor::Brown, res);
+            }break;
+            case Monopoly::EActionType::RentOrangePink:
+            {
+                RentTwoColorAction(player, Monopoly::EColor::Orange, Monopoly::EColor::Pink, res);
+            }break;
+            case Monopoly::EActionType::RentYellowRed:
+            {
+                RentTwoColorAction(player, Monopoly::EColor::Yellow, Monopoly::EColor::Red, res);
+            }break;
+            case Monopoly::EActionType::RentUtilityRailroad:
+            {
+                RentTwoColorAction(player, Monopoly::EColor::Utility, Monopoly::EColor::Railroad, res);
+            }break;
+            case Monopoly::EActionType::RentBlueGreen:
+            {
+                RentTwoColorAction(player, Monopoly::EColor::Blue, Monopoly::EColor::Green, res);
+            }break;
+        }
+        return res;
+    }
+
+    void RentTwoColorAction(const Monopoly::Player& player, Monopoly::EColor color1, Monopoly::EColor color2, json& res) const
+    {
+        json dtr = GetDoubleTheRentMayUse(player);
+        json sets;
+        for (int i = 0; i < player.GetCardSets().size(); ++i)
+        {
+            const auto color = player.GetCardSets()[i].GetColor();
+            if (color == color1 || color == color2)
+            {
+                json v;
+                v[Monopoly::c_JSON_PlayerSetIndex] = i;
+                sets += v;
+                if (dtr.empty())
+                {
+                    res += sets;
+                }
+                else
+                {
+                    for (const auto& d : dtr)
+                    {
+                        json t = v;
+                        t.merge_patch(d);
+                        res += t;
+                    }
+                }
+            }
+        }
+    }
+
+    json GetDoubleTheRentMayUse(const Monopoly::Player& player) const
+    {
+        int dtrCount = GetDoubleTheRentCountMayUse(player);
+        json dtr;
+        for (int i = 0; i < (dtrCount + 1); ++i)
+        {
+            // 0 1 2
+            json v;
+            v[Monopoly::c_JSON_DoubleTheRentUseCount] = i;
+            dtr += v;
+        }
+        return dtr;
+    }
+
 private:
     auto Color(Monopoly::EColor color) const
     {
@@ -63,8 +334,10 @@ private:
         //    std::cout << "\t\t\tColor for flip " << Color(card->GetColor2()) << "\n";
     }
 
+    mutable json validTurns;
     virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const override
     {
+        validTurns = GetAllValidPlayerTurns(Game::GetCurrentPlayerIndex());
         std::cout << "Input command:\n" 
             << static_cast<int>(Game::ETurn::Pass) << " - pass\n"
             << static_cast<int>(Game::ETurn::FlipCard) << " - flip\n"
@@ -429,17 +702,13 @@ private:
             std::cout << "\t\tHand count: " << player.GetCardsInHand().size() << "\n";
             for (int i = 0; i < player.GetCardsInHand().size(); ++i)
             {
-                auto e = player.GetCardsInHand().begin();
-                std::advance(e, i);
-                ShowCard(i, *e);
+                ShowCard(i, player.GetCardsInHand()[i]);
             }
         }
         std::cout << "\t\tBank count: " << player.GetCardsInBank().size() << "\n";
         for (int i = 0; i < player.GetCardsInBank().size(); ++i)
         {
-            auto e = player.GetCardsInBank().begin();
-            std::advance(e, i);
-            ShowCard(i, *e);
+            ShowCard(i, player.GetCardsInBank()[i]);
         }
         std::cout << "\t\tSets count: " << player.GetCardSets().size() << "\n";
         for (int j = 0; j < player.GetCardSets().size(); ++j)
@@ -448,9 +717,7 @@ private:
             const auto& set = player.GetCardSets()[j];
             for (int i = 0; i < set.GetCards().size(); ++i)
             {
-                auto e = set.GetCards().begin();
-                std::advance(e, i);
-                ShowCard(i, *e);
+                ShowCard(i, set.GetCards()[i]);
             }
             if (set.GetColor() != Monopoly::EColor::Railroad && set.GetColor() != Monopoly::EColor::Utility)
             {
@@ -465,7 +732,6 @@ private:
     {
         ShowPlayerData(index, true);
     }
-
     virtual void ShowPrivatePlayerData(const int index) const override
     {
         std::cout << "Deck cards count: " << Game::GetDeckCardsCount() << "\n";

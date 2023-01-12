@@ -216,3 +216,14 @@ TEST(GameTest, LoadGame)
     }
 }
 
+TEST(GameTest, Play)
+{
+    //TestGame g("tests/saves/newsave2.json");
+    //g.m_Turn = Game::ETurn::PlayCard;
+    //g.m_CardIndex = 3;
+    //g.m_ACtionInput = Game::EActionInput::Play;
+    //g.m_VictimIndex = 0;
+    //g.useJustSayNo = false;
+
+    //g.GameBody();
+}
