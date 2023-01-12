@@ -21,7 +21,6 @@ public:
     virtual ~Game() = default;
     static constexpr int c_FullSetsCountForWin = 3;
     int Run();
-
 protected:
     Game();
     Game(const std::string& fileName);
@@ -78,6 +77,7 @@ protected:
         int& emptyIndex, int& setIndex) = 0;
     virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
     virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const = 0;
+    void GameBody();
 private:
     void BeginTurn();
     ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);

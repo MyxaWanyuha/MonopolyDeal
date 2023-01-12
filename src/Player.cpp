@@ -136,6 +136,14 @@ namespace Monopoly
                 }
             }
         }
+        for (int i = 0; i < m_CardSets.size(); ++i)
+        {
+            if (m_CardSets[i].IsEmpty())
+            {
+                m_CardSets.erase(m_CardSets.begin() + i);
+                i = -1;
+            }
+        }
     }
     
     CardContainer Player::RemoveCardsFromHand(const std::vector<int>& cardIndices)
@@ -212,7 +220,7 @@ namespace Monopoly
         int res = 0;
         for (const auto& e : moneyIndices)
         {
-            if (e > 0 && e < m_Bank.size())
+            if (e >= 0 && e < m_Bank.size())
             {
                 auto it = m_Bank.begin();
                 std::advance(it, e);
@@ -223,11 +231,11 @@ namespace Monopoly
         }
         for (const auto& v : setIndices)
         {
-            if (v.first > 0 && v.first < m_CardSets.size())
+            if (v.first >= 0 && v.first < m_CardSets.size())
             {
                 for (const auto& e : v.second)
                 {
-                    if (e > 0 && e < m_CardSets[v.first].GetCards().size())
+                    if (e >= 0 && e < m_CardSets[v.first].GetCards().size())
                     {
                         auto it = m_CardSets[v.first].GetCards().begin();
                         std::advance(it, e);

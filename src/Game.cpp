@@ -131,39 +131,47 @@ namespace Monopoly
     {
         while (m_bGameIsNotEnded)
         {
-            BeginTurn();
-            ETurnOutput turnOutput;
-            do {
-                ShowPrivatePlayerData(m_CurrentPlayerIndex);
-                for (int i = 0; i < GetPlayers().size(); ++i)
-                {
-                    if (i != GetCurrentPlayerIndex())
-                        ShowPublicPlayerData(i);
-                }
-                auto turn = ETurn::Pass;
-                int cardIndex = 0, setIndex = 0;
-                InputTurn(turn, cardIndex, setIndex);
-                turnOutput = Turn(turn, cardIndex, setIndex);
-                if (turnOutput == Game::ETurnOutput::IncorrectInput)
-                {
-                    std::cerr << "Input is incorrect!\n";
-                }
-                else if (turnOutput == Game::ETurnOutput::IncorrectIndex)
-                {
-                    std::cerr << "Index is incorrect!\n";
-                }
-            } while (turnOutput != Game::ETurnOutput::NextPlayer && turnOutput != Game::ETurnOutput::GameOver);
-
-            if (const auto extraCardsCount = Game::GetExtraCardsCount(); extraCardsCount > 0)
-            {
-                std::vector<int> container;
-                InputIndexesToRemove(extraCardsCount, container);
-                assert(container.size() == extraCardsCount);
-                RemoveExtraCards(container);
-            }
-            EndTurn();
+            GameBody();
         }
         return 0;
+    }
+
+    void Game::GameBody()
+    {
+        static uint32_t saveNumber = 0;
+        Game::Save("newsave" + std::to_string(saveNumber++) + ".json");
+
+        BeginTurn();
+        ETurnOutput turnOutput;
+        do {
+            ShowPrivatePlayerData(m_CurrentPlayerIndex);
+            for (int i = 0; i < GetPlayers().size(); ++i)
+            {
+                if (i != GetCurrentPlayerIndex())
+                    ShowPublicPlayerData(i);
+            }
+            auto turn = ETurn::Pass;
+            int cardIndex = 0, setIndex = 0;
+            InputTurn(turn, cardIndex, setIndex);
+            turnOutput = Turn(turn, cardIndex, setIndex);
+            if (turnOutput == Game::ETurnOutput::IncorrectInput)
+            {
+                std::cerr << "Input is incorrect!\n";
+            }
+            else if (turnOutput == Game::ETurnOutput::IncorrectIndex)
+            {
+                std::cerr << "Index is incorrect!\n";
+            }
+        } while (turnOutput != Game::ETurnOutput::NextPlayer && turnOutput != Game::ETurnOutput::GameOver);
+
+        if (const auto extraCardsCount = Game::GetExtraCardsCount(); extraCardsCount > 0)
+        {
+            std::vector<int> container;
+            InputIndexesToRemove(extraCardsCount, container);
+            assert(container.size() == extraCardsCount);
+            RemoveExtraCards(container);
+        }
+        EndTurn();
     }
 
     void Game::BeginTurn()

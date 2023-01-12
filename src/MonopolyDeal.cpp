@@ -323,6 +323,8 @@ private:
                     auto indexNextSet = readSet(i + 1, args);
                     if (indexNextSet == errorCode)
                         return errorCode;
+                    if (i == args.size())
+                        return 0;
                     i = indexNextSet - 1;
                 }
                 else
@@ -336,8 +338,7 @@ private:
             std::string input;
             moneyIndices.clear();
             setIndices.clear();
-
-            std::getline(std::cin, input);
+            std::getline(std::cin >> std::ws, input);
             auto args = split(input);
             auto setIndex = 0;
             if (args[setIndex] == bank)
@@ -467,8 +468,6 @@ private:
 
     virtual void ShowPrivatePlayerData(const int index) const override
     {
-        static uint32_t saveNumber = 0;
-        Game::Save("save" + std::to_string(saveNumber++) + ".json");
         std::cout << "Deck cards count: " << Game::GetDeckCardsCount() << "\n";
         std::cout << "Draw: \n";
         for (int i = 0; i < Game::GetDrawCards().size(); ++i)
