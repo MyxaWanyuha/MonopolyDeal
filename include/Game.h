@@ -79,6 +79,11 @@ protected:
     virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const = 0;
     void GameBody();
     int GetDoubleTheRentCountMayUse(const Player& player) const;
+    void FindEnhancementsAndFullSetsWithout(const Monopoly::Player& currentPlayer,
+        std::vector<int>& emptyHouseSetsIndexes,
+        std::vector<int>& emptyHotelSetsIndexes,
+        std::vector<int>& fullSetsWithoutHouseIndexes,
+        std::vector<int>& fullSetsWithoutHotelsIndexes) const;
 private:
     void BeginTurn();
     ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);

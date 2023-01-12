@@ -39,6 +39,7 @@ namespace Monopoly
 
     static const char* c_JSON_PlayerSetIndex           = "SetIndex";
     static const char* c_JSON_PlayerPropertyIndexInSet = "PropertyIndexInSet";
+    static const char* c_JSON_EmptySetIndex            = "EmptySetIndex";
 
     static const char* c_JSON_DoubleTheRentUseCount    = "DoubleTheRentUseCount";
 }

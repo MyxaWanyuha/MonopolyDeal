@@ -31,7 +31,11 @@ public:
     json GetAllValidPlayerTurns(int index) const
     {
         json turns;
-        turns += {Monopoly::c_JSON_Command, ETurn::Pass};
+        {
+            json pass;
+            pass[Monopoly::c_JSON_Command] = ETurn::Pass;
+            turns += pass;
+        }
         const auto& player = Game::GetPlayers()[index];
 
         for (int i = 0; i < player.GetCardsInHand().size(); ++i)
@@ -59,7 +63,54 @@ public:
                 }
             }
         }
+
+        for (int i = 0; i < player.GetCardSets().size(); ++i)
+        {
+            const auto& set = player.GetCardSets()[i];
+            for (int j = 0; j < set.GetCards().size(); ++j)
+            {
+                const auto& card = set.GetCards()[j];
+                if (card->GetColor2() != Monopoly::EColor::None)
+                {
+                    json flip;
+                    flip[Monopoly::c_JSON_Command] = ETurn::FlipCard;
+                    flip[Monopoly::c_JSON_CardIndex] = j;
+                    flip[Monopoly::c_JSON_PlayerSetIndex] = i;
+                    turns += flip;
+                }
+            }
+        }
+
+        std::vector<int> emptyHouseSetsIndexes;
+        std::vector<int> emptyHotelSetsIndexes;
+        std::vector<int> fullSetsWithoutHouseIndexes;
+        std::vector<int> fullSetsWithoutHotelsIndexes;
+        Game::FindEnhancementsAndFullSetsWithout(player,
+            emptyHouseSetsIndexes, 
+            emptyHotelSetsIndexes,
+            fullSetsWithoutHouseIndexes,
+            fullSetsWithoutHotelsIndexes);
+        ValidMoveEnhancementToFullSet(emptyHouseSetsIndexes, fullSetsWithoutHouseIndexes, turns);
+        ValidMoveEnhancementToFullSet(emptyHotelSetsIndexes, fullSetsWithoutHotelsIndexes, turns);
         return turns;
+    }
+
+    void ValidMoveEnhancementToFullSet(std::vector<int>& emptyIndexes, std::vector<int>& fullSetsIndexes, json& turns) const
+    {
+        if (!emptyIndexes.empty() && !fullSetsIndexes.empty())
+        {
+            for (int i = 0; i < emptyIndexes.size(); ++i)
+            {
+                for (int j = 0; j < fullSetsIndexes.size(); ++j)
+                {
+                    json hh;
+                    hh[Monopoly::c_JSON_Command] = ETurn::HouseHotelOnTable;
+                    hh[Monopoly::c_JSON_EmptySetIndex] = i;
+                    hh[Monopoly::c_JSON_PlayerSetIndex] = j;
+                    turns += hh;
+                }
+            }
+        }
     }
 
     json ExtraActionInformation(const Monopoly::CardContainerElem& card, const Monopoly::Player& player) const

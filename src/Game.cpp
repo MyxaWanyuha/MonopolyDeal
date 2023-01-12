@@ -273,24 +273,7 @@ namespace Monopoly
         std::vector<int> emptyHotelSetsIndexes;
         std::vector<int> fullSetsWithoutHouseIndexes;
         std::vector<int> fullSetsWithoutHotelsIndexes;
-        for (int i = 0; i < currentPlayer.GetCardSets().size(); ++i)
-        {
-            const auto& set = currentPlayer.GetCardSets()[i];
-            if (set.GetCards().empty())
-            {
-                if (set.IsHasHouse())
-                    emptyHouseSetsIndexes.emplace_back(i);
-                else if (set.IsHasHotel())
-                    emptyHotelSetsIndexes.emplace_back(i);
-            }
-            else if (set.IsFull())
-            {
-                if (!set.IsHasHouse())
-                    fullSetsWithoutHouseIndexes.emplace_back(i);
-                else if (!set.IsHasHotel())
-                    fullSetsWithoutHotelsIndexes.emplace_back(i);
-            }
-        }
+        FindEnhancementsAndFullSetsWithout(currentPlayer, emptyHouseSetsIndexes, emptyHotelSetsIndexes, fullSetsWithoutHouseIndexes, fullSetsWithoutHotelsIndexes);
 
         if ((!emptyHouseSetsIndexes.empty() && !fullSetsWithoutHouseIndexes.empty()) 
             || (!emptyHotelSetsIndexes.empty() && !fullSetsWithoutHotelsIndexes.empty()))
@@ -318,6 +301,28 @@ namespace Monopoly
             return ETurnOutput::IncorrectInput;
         }
         return ETurnOutput::CardProcessed;
+    }
+
+    void Game::FindEnhancementsAndFullSetsWithout(const Monopoly::Player& currentPlayer, std::vector<int>& emptyHouseSetsIndexes, std::vector<int>& emptyHotelSetsIndexes, std::vector<int>& fullSetsWithoutHouseIndexes, std::vector<int>& fullSetsWithoutHotelsIndexes) const
+    {
+        for (int i = 0; i < currentPlayer.GetCardSets().size(); ++i)
+        {
+            const auto& set = currentPlayer.GetCardSets()[i];
+            if (set.GetCards().empty())
+            {
+                if (set.IsHasHouse())
+                    emptyHouseSetsIndexes.emplace_back(i);
+                else if (set.IsHasHotel())
+                    emptyHotelSetsIndexes.emplace_back(i);
+            }
+            else if (set.IsFull())
+            {
+                if (!set.IsHasHouse())
+                    fullSetsWithoutHouseIndexes.emplace_back(i);
+                else if (!set.IsHasHotel())
+                    fullSetsWithoutHotelsIndexes.emplace_back(i);
+            }
+        }
     }
 
     Game::ETurnOutput Game::ProcessActionCard(Player& currentPlayer, const CardContainerElem& card)
