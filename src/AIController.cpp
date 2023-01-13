@@ -118,26 +118,28 @@ namespace Monopoly
 
     void AIController::InputDebtCollector(int& victimIndex)
     {
-        victimIndex = m_Turn[Monopoly::c_JSON_VictimIndex];
+         victimIndex = m_Turn[Monopoly::c_JSON_VictimIndex];
     }
 
     void AIController::InputPay(const int victimIndex, const int amount, std::vector<int>& moneyIndices,
         std::unordered_map<int, std::vector<int>>& setIndices)
     {
         int payAmount = 0;
-        int money = 0;
         int properties = 0;
+        const auto& player = m_Game.GetPlayers()[m_Index];
+        const auto& bank = player.GetCardsInBank();
+        std::vector<int> availableMoneyIndices;
+        for (int i = 0; i < bank.size(); ++i)
+            availableMoneyIndices.emplace_back(i);
         while (payAmount < amount)
         {
-            const auto& player = m_Game.GetPlayers()[m_Index];
-            const auto& bank = player.GetCardsInBank();
-            const bool useMoneyToPay = bank.size() > money ? rand() % 2 : false;
+            const bool useMoneyToPay = !availableMoneyIndices.empty() ? rand() % 2 : false;
             if (useMoneyToPay)
             {
-                money += 1;
-                const auto moneyIndex = rand() % bank.size();
-                moneyIndices.emplace_back(moneyIndex);
-                payAmount += bank[moneyIndex]->GetValue();
+                const auto moneyIndex = rand() % availableMoneyIndices.size();
+                moneyIndices.emplace_back(availableMoneyIndices[moneyIndex]);
+                availableMoneyIndices.erase(availableMoneyIndices.begin() + moneyIndex);
+                payAmount += bank[moneyIndices.back()]->GetValue();
             }
             else
             {
@@ -164,6 +166,19 @@ namespace Monopoly
                     if (set.IsHasHotel()) // index of hotel is set.size() + 1
                         ++addIndex;
                     const auto propertyIndex = rand() % (player.GetCardSets().size() + addIndex);
+                    setIndices[setIndex].emplace_back(propertyIndex);
+                    if (propertyIndex < player.GetCardSets().size())
+                    {
+                        payAmount += set.GetCards()[propertyIndex]->GetValue();
+                    }
+                    else if (propertyIndex == player.GetCardSets().size())
+                    {
+                        payAmount += set.GetHouse()->GetValue();
+                    }
+                    else if (propertyIndex == (player.GetCardSets().size() + 1))
+                    {
+                        payAmount += set.GetHotel()->GetValue();
+                    }
                 }
             }
         }

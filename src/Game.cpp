@@ -123,8 +123,8 @@ namespace Monopoly
             PlayerTakeCardsFromDeck(m_Players[i], c_StartCardsCount);
         }
 
-        m_Controllers.emplace_back(std::make_shared<PlayerController>(0, *this));
-        for (uint32_t i = 1; i < playersCount; ++i)
+        //m_Controllers.emplace_back(std::make_shared<PlayerController>(0, *this));
+        for (uint32_t i = 0; i < playersCount; ++i)
         {
             m_Controllers.emplace_back(std::make_shared<AIController>(i, *this));
         }
@@ -647,7 +647,7 @@ namespace Monopoly
             std::vector<int> moneyIndices;
             std::unordered_map<int, std::vector<int>> setIndices;
 
-            m_Controllers[m_CurrentPlayerIndex]->InputPay(victimIndex, amount, moneyIndices, setIndices);
+            m_Controllers[victimIndex]->InputPay(victimIndex, amount, moneyIndices, setIndices);
             {
                 auto money = m_Players[victimIndex].RemoveCardsFromBank(moneyIndices);
                 m_Players[m_CurrentPlayerIndex].AddCardsToBank(std::move(money));
