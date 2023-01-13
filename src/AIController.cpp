@@ -165,17 +165,17 @@ namespace Monopoly
                         ++addIndex;
                     if (set.IsHasHotel()) // index of hotel is set.size() + 1
                         ++addIndex;
-                    const auto propertyIndex = rand() % (player.GetCardSets().size() + addIndex);
+                    const auto propertyIndex = rand() % (set.GetCards().size() + addIndex);
                     setIndices[setIndex].emplace_back(propertyIndex);
-                    if (propertyIndex < player.GetCardSets().size())
+                    if (propertyIndex < set.GetCards().size())
                     {
                         payAmount += set.GetCards()[propertyIndex]->GetValue();
                     }
-                    else if (propertyIndex == player.GetCardSets().size())
+                    else if (propertyIndex == set.GetCards().size())
                     {
                         payAmount += set.GetHouse()->GetValue();
                     }
-                    else if (propertyIndex == (player.GetCardSets().size() + 1))
+                    else if (propertyIndex == (set.GetCards().size() + 1))
                     {
                         payAmount += set.GetHotel()->GetValue();
                     }
