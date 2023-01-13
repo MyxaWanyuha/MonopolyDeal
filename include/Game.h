@@ -1,12 +1,16 @@
 #pragma once
 #include "Player.h"
+#include "IGameInput.h"
 
 namespace Monopoly
 {
 
 class Game
 {
+    using ETurn = IGameInput::ETurn;
+    using EActionInput = IGameInput::EActionInput;
     using Players = std::vector<Player>;
+    using Controllers = std::vector<std::shared_ptr<IController>>;
     using Deck = std::deque<CardContainerElem>;
     using Draw = std::vector<CardContainerElem>;
     static constexpr uint32_t c_MinPlayersCount = 2;
@@ -18,13 +22,13 @@ class Game
     static constexpr int c_ItsMyBirthdayAmount = 2;
     static constexpr int c_DebtCollectorAmount = 5;
 public:
-    virtual ~Game() = default;
-    static constexpr int c_FullSetsCountForWin = 3;
-    int Run();
-protected:
     Game();
     Game(const std::string& fileName);
     bool Init(const uint32_t playersCount, const uint32_t seed);
+
+    static constexpr int c_FullSetsCountForWin = 3;
+    int Run();
+
     size_t GetDeckCardsCount() const { return m_Deck.size(); }
     const Draw& GetDrawCards() const { return m_Draw; }
     size_t GetPlayersCount() const { return m_Players.size(); }
@@ -34,13 +38,6 @@ protected:
     void Save(const std::string& fileName) const;
     void Load(const std::string& fileName);
 
-    enum class ETurn : int
-    {
-        Pass = 1,
-        FlipCard = 2,
-        PlayCard = 3,
-        HouseHotelOnTable = 4
-    };
     enum class ETurnOutput
     {
         IncorrectInput,
@@ -50,33 +47,6 @@ protected:
         NextPlayer,
         GameOver
     };
-    enum class EActionInput
-    {
-        ToBank = 0,
-        Play = 1
-    };
-
-    virtual void ShowPublicPlayerData(const int index) const = 0;
-    virtual void ShowPrivatePlayerData(const int index) const = 0;
-    virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) = 0;
-    virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const = 0;
-    virtual EActionInput GetActionInput() const = 0;
-    virtual int SelectSetIndex(const std::vector<int>& indices) const = 0;
-    virtual void InputDealBreaker(int& victimIndex, int& setIndex) const = 0;
-    virtual void InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet) = 0;
-    virtual void InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet) = 0;
-    virtual void InputDebtCollector(int& victimIndex) = 0;
-    virtual void InputPay(const int notUsed, const int amount, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices) = 0;
-    virtual void InputRentWild(int& victimIndex, int& setIndex) = 0;
-    virtual void InputRentTwoColors(int& setIndex) = 0;
-    virtual void InputMoveHouseHotelFromTableToFullSet(
-        const std::vector<int>& emptyHouseSetsIndexes,
-        const std::vector<int>& emptyHotelSetsIndexes,
-        const std::vector<int>& fullSetsWithoutHouseIndexes,
-        const std::vector<int>& fullSetsWithoutHotelsIndexes,
-        int& emptyIndex, int& setIndex) = 0;
-    virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
-    virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const = 0;
     void GameBody();
     int GetDoubleTheRentCountMayUse(const Player& player) const;
     void FindEnhancementsAndFullSetsWithout(const Monopoly::Player& currentPlayer,
@@ -116,6 +86,7 @@ private:
             m_Deck.push_front(std::make_shared<T>(name, shortData, value));
     }
 
+    Controllers m_Controllers;
     Players m_Players;
     Deck m_Deck;
     Draw m_Draw;

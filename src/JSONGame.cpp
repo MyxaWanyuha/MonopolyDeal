@@ -54,101 +54,101 @@ json SetToJson(const Monopoly::CardSet& set)
     return result;
 }
 
-void JSONGame::ShowPublicPlayerData(const int index) const
-{
-    // Show all game data
-    json result;
-    result[c_JSON_CurrentPlayerIndex] = Game::GetCurrentPlayerIndex();
-
-    for (int i = 0; i < Game::GetPlayers().size(); ++i)
-    {
-        const auto& player = Game::GetPlayers()[i];
-        json playerData;
-        auto addPlayerCards = [&](const CardContainer& cards, const char* jsonKey)
-        {
-            json cardsData;
-            for (const auto& card : cards)
-                cardsData += CardToJson(card);
-            playerData[jsonKey] = cardsData;
-        };
-
-        addPlayerCards(player.GetCardsInHand(), c_JSON_Hand);
-        addPlayerCards(player.GetCardsInBank(), c_JSON_Bank);
-        {
-            auto& sets = player.GetCardSets();
-            json setsData;
-            for (int j = 0; j < sets.size(); ++j)
-                setsData += SetToJson(sets[j]);
-            playerData[c_JSON_Sets] = setsData;
-        }
-
-        result[c_JSON_Players] += playerData;
-    }
-    std::cout << result;
-}
-
-void JSONGame::ShowPrivatePlayerData(const int index) const
-{
-    // Not needed
-}
-
-void JSONGame::InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container)
-{
-    json input;
-    std::cin >> input;
-}
-
-void JSONGame::InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const
-{
-}
-
-Game::EActionInput JSONGame::GetActionInput() const
-{
-	return EActionInput();
-}
-
-int JSONGame::SelectSetIndex(const std::vector<int>& indices) const
-{
-	return 0;
-}
-
-void JSONGame::InputDealBreaker(int& victimIndex, int& setIndex) const
-{
-}
-
-void JSONGame::InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet)
-{
-}
-
-void JSONGame::InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet)
-{
-}
-
-void JSONGame::InputDebtCollector(int& victimIndex)
-{
-}
-
-void JSONGame::InputPay(const int notUsed, const int amount, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices)
-{
-}
-
-void JSONGame::InputRentWild(int& victimIndex, int& setIndex)
-{
-}
-
-void JSONGame::InputRentTwoColors(int& setIndex)
-{
-}
-
-void JSONGame::InputMoveHouseHotelFromTableToFullSet(const std::vector<int>& emptyHouseSetsIndexes, const std::vector<int>& emptyHotelSetsIndexes, const std::vector<int>& fullSetsWithoutHouseIndexes, const std::vector<int>& fullSetsWithoutHotelsIndexes, int& emptyIndex, int& setIndex)
-{
-}
-
-bool JSONGame::InputUseJustSayNo(const int victimIndex) const
-{
-	return false;
-}
-
-void JSONGame::InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const
-{
-}
+//void JSONGame::ShowPublicPlayerData(const int index) const
+//{
+//    // Show all game data
+//    json result;
+//    result[c_JSON_CurrentPlayerIndex] = Game::GetCurrentPlayerIndex();
+//
+//    for (int i = 0; i < Game::GetPlayers().size(); ++i)
+//    {
+//        const auto& player = Game::GetPlayers()[i];
+//        json playerData;
+//        auto addPlayerCards = [&](const CardContainer& cards, const char* jsonKey)
+//        {
+//            json cardsData;
+//            for (const auto& card : cards)
+//                cardsData += CardToJson(card);
+//            playerData[jsonKey] = cardsData;
+//        };
+//
+//        addPlayerCards(player.GetCardsInHand(), c_JSON_Hand);
+//        addPlayerCards(player.GetCardsInBank(), c_JSON_Bank);
+//        {
+//            auto& sets = player.GetCardSets();
+//            json setsData;
+//            for (int j = 0; j < sets.size(); ++j)
+//                setsData += SetToJson(sets[j]);
+//            playerData[c_JSON_Sets] = setsData;
+//        }
+//
+//        result[c_JSON_Players] += playerData;
+//    }
+//    std::cout << result;
+//}
+//
+//void JSONGame::ShowPrivatePlayerData(const int index) const
+//{
+//    // Not needed
+//}
+//
+//void JSONGame::InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container)
+//{
+//    json input;
+//    std::cin >> input;
+//}
+//
+//void JSONGame::InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const
+//{
+//}
+//
+//Game::EActionInput JSONGame::GetActionInput() const
+//{
+//	return EActionInput();
+//}
+//
+//int JSONGame::SelectSetIndex(const std::vector<int>& indices) const
+//{
+//	return 0;
+//}
+//
+//void JSONGame::InputDealBreaker(int& victimIndex, int& setIndex) const
+//{
+//}
+//
+//void JSONGame::InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet)
+//{
+//}
+//
+//void JSONGame::InputForcedDeal(int& victimIndex, int& victimSetIndex, int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet)
+//{
+//}
+//
+//void JSONGame::InputDebtCollector(int& victimIndex)
+//{
+//}
+//
+//void JSONGame::InputPay(const int notUsed, const int amount, std::vector<int>& moneyIndices, std::unordered_map<int, std::vector<int>>& setIndices)
+//{
+//}
+//
+//void JSONGame::InputRentWild(int& victimIndex, int& setIndex)
+//{
+//}
+//
+//void JSONGame::InputRentTwoColors(int& setIndex)
+//{
+//}
+//
+//void JSONGame::InputMoveHouseHotelFromTableToFullSet(const std::vector<int>& emptyHouseSetsIndexes, const std::vector<int>& emptyHotelSetsIndexes, const std::vector<int>& fullSetsWithoutHouseIndexes, const std::vector<int>& fullSetsWithoutHotelsIndexes, int& emptyIndex, int& setIndex)
+//{
+//}
+//
+//bool JSONGame::InputUseJustSayNo(const int victimIndex) const
+//{
+//	return false;
+//}
+//
+//void JSONGame::InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const
+//{
+//}

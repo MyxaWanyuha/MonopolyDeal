@@ -7,6 +7,7 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT $
 set(GAME_PUBLIC_INCLUDES
     include/Game.h
     include/JsonConstants.h
+    include/IGameInput.h
 )
 
 set(GAME_PRIVATE_INCLUDES
@@ -15,6 +16,8 @@ set(GAME_PRIVATE_INCLUDES
     src/Player.h
     src/CSVRow.h
     src/JSONGame.h
+    src/AIController.h
+    src/PlayerController.h
 )
 
 set(GAME_PRIVATE_SOURCE
@@ -22,6 +25,8 @@ set(GAME_PRIVATE_SOURCE
     src/Game.cpp
     src/Player.cpp
     src/JSONGame.cpp
+    src/AIController.cpp
+    src/PlayerController.cpp
 )
 
 set(GAME_ALL_SOURCES

@@ -1,5 +1,7 @@
 #include "Monopoly_pch.h"
 #include "CSVRow.h"
+#include "PlayerController.h"
+#include "AIController.h"
 
 #include <fstream>
 #include "JsonConstants.h"
@@ -121,6 +123,12 @@ namespace Monopoly
             PlayerTakeCardsFromDeck(m_Players[i], c_StartCardsCount);
         }
 
+        m_Controllers.emplace_back(std::make_shared<PlayerController>(0, *this));
+        for (uint32_t i = 1; i < playersCount; ++i)
+        {
+            m_Controllers.emplace_back(std::make_shared<AIController>(i, *this));
+        }
+
         srand(seed);
         m_CurrentPlayerIndex = rand() % (playersCount + 1);
 
@@ -144,15 +152,15 @@ namespace Monopoly
         BeginTurn();
         ETurnOutput turnOutput;
         do {
-            ShowPrivatePlayerData(m_CurrentPlayerIndex);
+            m_Controllers[m_CurrentPlayerIndex]->ShowPrivatePlayerData(m_CurrentPlayerIndex);
             for (int i = 0; i < GetPlayers().size(); ++i)
             {
                 if (i != GetCurrentPlayerIndex())
-                    ShowPublicPlayerData(i);
+                    m_Controllers[i]->ShowPublicPlayerData(i);
             }
             auto turn = ETurn::Pass;
             int cardIndex = 0, setIndex = 0;
-            InputTurn(turn, cardIndex, setIndex);
+            m_Controllers[m_CurrentPlayerIndex]->InputTurn(turn, cardIndex, setIndex);
             turnOutput = Turn(turn, cardIndex, setIndex);
             if (turnOutput == Game::ETurnOutput::IncorrectInput)
             {
@@ -167,7 +175,7 @@ namespace Monopoly
         if (const auto extraCardsCount = Game::GetExtraCardsCount(); extraCardsCount > 0)
         {
             std::vector<int> container;
-            InputIndexesToRemove(extraCardsCount, container);
+            m_Controllers[m_CurrentPlayerIndex]->InputIndexesToRemove(extraCardsCount, container);
             assert(container.size() == extraCardsCount);
             RemoveExtraCards(container);
         }
@@ -179,7 +187,7 @@ namespace Monopoly
         PlayerTakeCardsFromDeck(m_Players[m_CurrentPlayerIndex], c_PassGoCardsCount);
     }
 
-    Game::ETurnOutput Game::Turn(const ETurn input, const int cardIndex, const int setIndex)
+    Game::ETurnOutput Game::Turn(const ETurn input, const int cardIndex, const int setIndexForFlip)
     {
         auto& currentPlayer = m_Players[m_CurrentPlayerIndex];
         switch (input)
@@ -188,7 +196,7 @@ namespace Monopoly
             return ETurnOutput::NextPlayer;
         case ETurn::FlipCard:
         {
-            const auto card = currentPlayer.RemoveCardFromSet(setIndex, cardIndex);
+            const auto card = currentPlayer.RemoveCardFromSet(setIndexForFlip, cardIndex);
             if (card != nullptr && card->GetColor2() != EColor::None)
             {
                 card->SwapColor();
@@ -225,7 +233,7 @@ namespace Monopoly
             }
             else if (type == ECardType::Action)
             {
-                if (GetActionInput() == EActionInput::ToBank)
+                if (m_Controllers[m_CurrentPlayerIndex]->GetActionInput() == EActionInput::ToBank)
                 {
                     currentPlayer.AddCardToBank(card);
                 }
@@ -279,8 +287,10 @@ namespace Monopoly
             || (!emptyHotelSetsIndexes.empty() && !fullSetsWithoutHotelsIndexes.empty()))
         {
             int emptyIndex, setIndex;
-            InputMoveHouseHotelFromTableToFullSet(emptyHouseSetsIndexes, emptyHotelSetsIndexes,
-                fullSetsWithoutHouseIndexes, fullSetsWithoutHotelsIndexes, emptyIndex, setIndex);
+            m_Controllers[m_CurrentPlayerIndex]->InputMoveHouseHotelFromTableToFullSet(
+                emptyHouseSetsIndexes, emptyHotelSetsIndexes, 
+                fullSetsWithoutHouseIndexes, fullSetsWithoutHotelsIndexes,
+                emptyIndex, setIndex);
 
             auto emptySet = currentPlayer.GetCardSets()[emptyIndex]; 
             CardContainerElem card;
@@ -424,7 +434,7 @@ namespace Monopoly
             return ETurnOutput::IncorrectCard;
         }
 
-        const auto index = SelectSetIndex(setsIndices);
+        const auto index = m_Controllers[m_CurrentPlayerIndex]->SelectSetIndex(setsIndices);
         if (std::find(setsIndices.begin(), setsIndices.end(), index) == setsIndices.end())
         {
             return ETurnOutput::IncorrectIndex;
@@ -438,7 +448,7 @@ namespace Monopoly
     Game::ETurnOutput Game::DealBreaker(Player& player, const CardContainerElem& card)
     {
         int victimIndex, setIndex;
-        InputDealBreaker(victimIndex, setIndex);
+        m_Controllers[m_CurrentPlayerIndex]->InputDealBreaker(victimIndex, setIndex); 
 
         if (!m_Players[victimIndex].GetCardSets()[setIndex].IsFull())
             return ETurnOutput::IncorrectIndex;
@@ -454,7 +464,7 @@ namespace Monopoly
     Game::ETurnOutput Game::SlyDeal(Player& player, const CardContainerElem& card)
     {
         int victimIndex, setIndex, propertyIndexInSet;
-        InputSlyDeal(victimIndex, setIndex, propertyIndexInSet);
+        m_Controllers[m_CurrentPlayerIndex]->InputSlyDeal(victimIndex, setIndex, propertyIndexInSet); 
 
         if (m_Players[victimIndex].GetCardSets()[setIndex].IsFull())
             return ETurnOutput::IncorrectIndex;
@@ -472,7 +482,8 @@ namespace Monopoly
         int victimIndex, victimSetIndex, victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet;
         if(player.GetNotFullSetsCount() == 0)
             return ETurnOutput::IncorrectCard;
-        InputForcedDeal(victimIndex, victimSetIndex, victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet);
+        m_Controllers[m_CurrentPlayerIndex]->InputForcedDeal(victimIndex, victimSetIndex, 
+            victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet);
 
         if (m_Players[victimIndex].GetCardSets()[victimIndex].IsFull() || m_Players[victimIndex].GetCardSets()[playerSetIndex].IsFull())
             return ETurnOutput::IncorrectIndex;
@@ -504,7 +515,7 @@ namespace Monopoly
     Game::ETurnOutput Game::DebtCollector(Player& player, const CardContainerElem& card)
     {
         int victimIndex;
-        InputDebtCollector(victimIndex);
+        m_Controllers[m_CurrentPlayerIndex]->InputDebtCollector(victimIndex);
 
         if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
         {
@@ -517,7 +528,8 @@ namespace Monopoly
     Game::ETurnOutput Game::RentWild(Player& player, const CardContainerElem& card)
     {
         int victimIndex, setIndex;
-        InputRentWild(victimIndex, setIndex);
+        m_Controllers[m_CurrentPlayerIndex]->InputRentWild(victimIndex, setIndex);
+
         auto payValue = player.GetCardSets()[setIndex].GetPayValue();
         auto howManyDoubleTheRent = DoubleTheRent(player, payValue);
         JustSayNoDoubleTheRent(howManyDoubleTheRent, victimIndex, payValue);
@@ -528,7 +540,7 @@ namespace Monopoly
     Game::ETurnOutput Game::RentTwoColors(Player& player, const CardContainerElem& card)
     {
         int setIndex;
-        InputRentTwoColors(setIndex);
+        m_Controllers[m_CurrentPlayerIndex]->InputRentTwoColors(setIndex);
 
         auto payValue = player.GetCardSets()[setIndex].GetPayValue();
         const auto howManyCardsToUse = DoubleTheRent(player, payValue);
@@ -548,7 +560,7 @@ namespace Monopoly
     bool Game::JustSayNo(const int victimIndex, const int instigatorIndex)
     {
         const auto i = m_Players[victimIndex].GetIndexJustSayNo();
-        if (i >= 0 && InputUseJustSayNo(victimIndex))
+        if (i >= 0 && m_Controllers[victimIndex]->InputUseJustSayNo(victimIndex))
         {
             const auto card = m_Players[victimIndex].RemoveCardFromHand(i);
             m_Draw.emplace_back(card);
@@ -565,7 +577,7 @@ namespace Monopoly
         int howManyCardsToUse = 0;
         if (doubleTheRentCount > 0)
         {
-            InputDoubleTheRent(doubleTheRentCount, howManyCardsToUse);
+            m_Controllers[m_CurrentPlayerIndex]->InputDoubleTheRent(doubleTheRentCount, howManyCardsToUse);
             m_CurrentPlayerTurnCounter -= howManyCardsToUse;
             for (int i = 0; i < howManyCardsToUse; ++i)
             {
@@ -634,7 +646,8 @@ namespace Monopoly
         {
             std::vector<int> moneyIndices;
             std::unordered_map<int, std::vector<int>> setIndices;
-            InputPay(victimIndex, amount, moneyIndices, setIndices);
+
+            m_Controllers[m_CurrentPlayerIndex]->InputPay(victimIndex, amount, moneyIndices, setIndices);
             {
                 auto money = m_Players[victimIndex].RemoveCardsFromBank(moneyIndices);
                 m_Players[m_CurrentPlayerIndex].AddCardsToBank(std::move(money));
