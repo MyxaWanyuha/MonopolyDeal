@@ -13,6 +13,7 @@ public:
     {
     }
 
+    virtual ~PlayerController() = default;
     auto Color(Monopoly::EColor color) const
     {
         for (auto it = Monopoly::c_ColorStrToEnum.begin(); it != Monopoly::c_ColorStrToEnum.end(); ++it) {

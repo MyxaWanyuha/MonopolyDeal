@@ -18,7 +18,7 @@ public:
         PlayCard = 3,
         HouseHotelOnTable = 4
     };
-
+    virtual ~IGameInput() = default;
     virtual void ShowPublicPlayerData(const int index) const = 0;
     virtual void ShowPrivatePlayerData(const int index) const = 0;
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) = 0;
@@ -49,7 +49,7 @@ protected:
         : m_Index(index), m_Game(g)
     {
     }
-
+    virtual ~IController() = default;
     int m_Index;
     const Game& m_Game;
 };

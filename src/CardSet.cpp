@@ -24,8 +24,10 @@ namespace Monopoly
         }
         else
         {
-            AddHouse(card);
-            AddHotel(card);
+            if(card->GetActionType() == EActionType::House)
+                m_House = card;
+            else if (card->GetActionType() == EActionType::Hotel)
+                m_Hotel = card;
         }
     }
 
@@ -67,6 +69,8 @@ namespace Monopoly
         CardContainer cards;
         for (const auto& i : cardIndices)
         {
+            // is house or hotel index
+            if (i >= m_Cards.size()) continue;
             auto it = m_Cards.begin();
             std::advance(it, i);
             if ((*it)->GetValue() != 0)
@@ -86,7 +90,7 @@ namespace Monopoly
 
     bool CardSet::IsFull() const
     {
-        return m_Color != EColor::All && c_RentValues.at(m_Color).size() == m_Cards.size();
+        return m_Color != EColor::None && m_Color != EColor::All && c_RentValues.at(m_Color).size() == m_Cards.size();
     }
 
     bool CardSet::AddHouse(const CardContainerElem& cardHouse)

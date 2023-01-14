@@ -122,26 +122,46 @@ namespace Monopoly
 
     CardContainer Player::RemoveCardsWithValueNotZeroFromSet(const int setIndex, const std::vector<int>& cardIndices)
     {
-        return m_CardSets[setIndex].RemoveCardsWithValueNotZero(cardIndices);
+        CardContainer res;
+        const auto& cards = m_CardSets[setIndex].GetCards();
+        const auto houseIndex = cards.size();
+        const auto hotelIndex = cards.size() + 1;
+        if (auto it = std::find(cardIndices.begin(), cardIndices.end(), houseIndex) != cardIndices.end())
+        {
+            m_CardSets[setIndex].RemoveCard(houseIndex);
+        }
+        if (auto it = std::find(cardIndices.begin(), cardIndices.end(), hotelIndex) != cardIndices.end())
+        {
+            m_CardSets[setIndex].RemoveCard(hotelIndex);
+        }
+
+        res.splice(res.end(), m_CardSets[setIndex].RemoveCardsWithValueNotZero(cardIndices));
+        return res;
     }
 
     void Player::RemoveHousesHotelsFromIncompleteSets()
     {
-        for (auto& e : m_CardSets)
+        CardSets hhSets;
+        for (int i = 0; i < m_CardSets.size(); ++i)
         {
-            if (!e.IsFull())
+            auto& set = m_CardSets[i];
+            if (!set.IsFull())
             {
-                if (e.IsHasHouse())
+                if (set.IsHasHouse())
                 {
-                    auto house = e.RemoveCard(e.GetCards().size());
-                    m_CardSets.emplace_back(CardSet(house));
+                    auto house = set.RemoveCard(set.GetCards().size());
+                    hhSets.emplace_back(CardSet(house));
                 }
-                if (e.IsHasHotel())
+                if (set.IsHasHotel())
                 {
-                    auto hotel = e.RemoveCard(e.GetCards().size() + 1);
-                    m_CardSets.emplace_back(CardSet(hotel));
+                    auto hotel = set.RemoveCard(set.GetCards().size() + 1);
+                    hhSets.emplace_back(CardSet(hotel));
                 }
             }
+        }
+        for (const auto& set : hhSets)
+        {
+            m_CardSets.emplace_back(set);
         }
         for (int i = 0; i < m_CardSets.size(); ++i)
         {
@@ -185,11 +205,22 @@ namespace Monopoly
 
     void Player::AddProperty(const CardContainerElem& card)
     {
-        for (auto& e : m_CardSets)
+        for (int i = 0; i < m_CardSets.size(); ++i)
         {
-            if (e.GetColor() == card->GetCurrentColor() && e.IsFull() == false)
+            if (AddHouseToCardSet(i, card) || AddHotelToCardSet(i, card))
             {
-                e.AddProperty(card);
+                return;
+            }
+            else if (card->GetActionType() == EActionType::House
+                || card->GetActionType() == EActionType::Hotel)
+            {
+                m_CardSets.emplace_back(CardSet(card));
+                return;
+            }
+            auto& set = m_CardSets[i];
+            if (set.GetColor() == card->GetCurrentColor() && set.IsFull() == false)
+            {
+                set.AddProperty(card);
                 return;
             }
         }

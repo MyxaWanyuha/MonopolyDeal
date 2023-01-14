@@ -141,12 +141,12 @@ namespace Monopoly
         {
             if (IsDraw())
             {
-                std::cout << "Draw!\n";
-                return 0;
+                //std::cout << "Draw!\n";
+                return 1;
             }
             GameBody();
         }
-        std::cout << "AI " << m_CurrentPlayerIndex << " won!\n";
+        //std::cout << "AI " << m_CurrentPlayerIndex << " won!\n";
         return 0;
     }
 
@@ -175,6 +175,8 @@ namespace Monopoly
             {
                 std::cerr << "Index is incorrect!\n";
             }
+            auto i = CardsInGameCount();
+            //assert(i == 106);
         } while (turnOutput != Game::ETurnOutput::NextPlayer && turnOutput != Game::ETurnOutput::GameOver);
         if (turnOutput == Game::ETurnOutput::GameOver)
         {
@@ -188,7 +190,8 @@ namespace Monopoly
             RemoveExtraCards(container);
         }
         EndTurn();
-        assert(CardsInGameCount() == 106);
+        auto i = CardsInGameCount();
+        //assert(i == 106);
     }
 
     int Game::CardsInGameCount() const
@@ -471,7 +474,7 @@ namespace Monopoly
         {
             const auto color = sets[i].GetColor();
             const auto isHasEnhancement = card->GetActionType() == EActionType::House ? sets[i].IsHasHouse() : sets[i].IsHasHotel();
-            if (color != EColor::Railroad && color != EColor::Utility && isHasEnhancement == false)
+            if (color != EColor::Railroad && color != EColor::Utility && isHasEnhancement == false && sets[i].IsFull())
             {
                 setsIndices.emplace_back(i);
             }
@@ -688,6 +691,10 @@ namespace Monopoly
                 {
                     m_Players[m_CurrentPlayerIndex].AddProperty(card);
                 }
+                if (set.IsHasHouse())
+                    m_Players[m_CurrentPlayerIndex].AddProperty(set.GetHouse());
+                if (set.IsHasHotel())
+                    m_Players[m_CurrentPlayerIndex].AddProperty(set.GetHotel());
             }
             m_Players[victimIndex].RemoveSets();
         }

@@ -12,7 +12,7 @@ namespace Monopoly
         const auto validTurns = GetAllValidPlayerTurns(m_Index);
         const auto index = rand() % validTurns.size();
         m_Turn = validTurns[index];
-        std::cout << "\nAI " << m_Index << " did " << m_Turn << "\n\n";
+        //std::cout << "\nAI " << m_Index << " did " << m_Turn << "\n\n";
     }
 
     void ShowCard(const int index, const Monopoly::CardContainerElem& card)
@@ -55,12 +55,12 @@ namespace Monopoly
 
     void AIController::ShowPublicPlayerData(const int index) const
     {
-        ShowPlayerData();
+        //ShowPlayerData();
     }
 
     void AIController::ShowPrivatePlayerData(const int index) const
     {
-        ShowPlayerData();
+        //ShowPlayerData();
     }
 
     void AIController::InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container)
@@ -296,8 +296,8 @@ namespace Monopoly
                 {
                     json hh;
                     hh[Monopoly::c_JSON_Command] = ETurn::HouseHotelOnTable;
-                    hh[Monopoly::c_JSON_EmptySetIndex] = i;
-                    hh[Monopoly::c_JSON_PlayerSetIndex] = j;
+                    hh[Monopoly::c_JSON_EmptySetIndex] = emptyIndexes[i];
+                    hh[Monopoly::c_JSON_PlayerSetIndex] = fullSetsIndexes[j];
                     turns += hh;
                 }
             }

@@ -36,6 +36,13 @@ private:
 
 int main()
 {
+    {
+        while (true)
+        {
+            std::unique_ptr<ConsoleGame> g = std::make_unique<ConsoleGame>();
+            g->Run();
+        }
+    }
     std::unique_ptr<ConsoleGame> g;
 
     int input = 2;
