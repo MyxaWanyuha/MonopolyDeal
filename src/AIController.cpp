@@ -143,6 +143,8 @@ namespace Monopoly
             }
             else
             {
+                if (player.GetCardSets().size() == 0)
+                    continue;
                 const auto setIndex = rand() % player.GetCardSets().size();
                 const auto& set = player.GetCardSets()[setIndex];
                 int addIndex = 0;
@@ -166,9 +168,10 @@ namespace Monopoly
                     if (set.IsHasHotel()) // index of hotel is set.size() + 1
                         ++addIndex;
                     const auto propertyIndex = rand() % (set.GetCards().size() + addIndex);
-                    setIndices[setIndex].emplace_back(propertyIndex);
                     if (propertyIndex < set.GetCards().size())
                     {
+                        if (set.GetCards()[propertyIndex]->GetValue() == 0)// is wild card
+                            continue;
                         payAmount += set.GetCards()[propertyIndex]->GetValue();
                     }
                     else if (propertyIndex == set.GetCards().size())
@@ -179,6 +182,9 @@ namespace Monopoly
                     {
                         payAmount += set.GetHotel()->GetValue();
                     }
+                    if(std::find(setIndices[setIndex].begin(), 
+                        setIndices[setIndex].end(), propertyIndex) == setIndices[setIndex].end())
+                        setIndices[setIndex].emplace_back(propertyIndex);
                 }
             }
         }

@@ -38,9 +38,16 @@ namespace Monopoly
     bool Player::IsWinner() const
     {
         int fullSetsCount = 0;
+        std::vector<EColor> fullSetsColors;
         for (const auto& set : m_CardSets)
         {
-            fullSetsCount += static_cast<int>(set.IsFull());
+            if (set.IsFull() 
+                && std::find(fullSetsColors.begin(), fullSetsColors.end(), set.GetColor()) 
+                   == fullSetsColors.end())
+            {
+                fullSetsColors.emplace_back(set.GetColor());
+                ++fullSetsCount;
+            }
         }
         return fullSetsCount >= Game::c_FullSetsCountForWin;
     }

@@ -33,7 +33,14 @@ namespace Monopoly
     {
         if (card->GetType() == ECardType::Property)
         {
-            assert(m_Cards.size() < c_RentValues.at(m_Color).size());
+            if (m_Color == EColor::All)
+            {
+                m_Color = card->GetCurrentColor();
+            }
+            else
+            {
+                assert(m_Cards.size() < c_RentValues.at(m_Color).size());
+            }
             m_Cards.push_back(card);
         }
     }
@@ -79,7 +86,7 @@ namespace Monopoly
 
     bool CardSet::IsFull() const
     {
-        return c_RentValues.at(m_Color).size() == m_Cards.size();
+        return m_Color != EColor::All && c_RentValues.at(m_Color).size() == m_Cards.size();
     }
 
     bool CardSet::AddHouse(const CardContainerElem& cardHouse)
@@ -114,7 +121,7 @@ namespace Monopoly
 
     int CardSet::GetPayValue() const
     {
-        if (m_Cards.size() == 0)
+        if (m_Cards.size() == 0 || m_Color == EColor::All)
         {
             return 0;
         }

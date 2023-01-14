@@ -1,20 +1,20 @@
 Name;CardType;Value;Count;Color;SecondColor;ActionType;
-Pass Go;Action;1;10;None;None;PassGo;aPG
-Double The Rent;Action;1;2;None;None;DoubleTheRent;aDTR
-Just Say No;Action;4;3;None;None;JustSayNo;aJSN
-Hotel;Action;4;2;None;None;Hotel;aHt
-House;Action;3;3;None;None;House;aHu
-Deal Breaker;Action;5;2;None;None;DealBreaker;aDB
-Sly Deal;Action;3;3;None;None;SlyDeal;aSD
-Forced Deal;Action;3;3;None;None;ForcedDeal;aFD
-It's My Birthday;Action;2;3;None;None;ItsMyBirthday;aIMB
-Debt Collector;Action;3;3;None;None;DebtCollector;aDC
-Rent Wild;Action;3;3;All;None;RentWild;aRW
-Rent Light Blue-Brown;Action;1;2;LightBlue;Brown;RentLightBlueBrown;aRLbBr
-Rent Orange-Pink;Action;1;2;Orange;Pink;RentOrangePink;aROP
-Rent Yellow-Red;Action;1;2;Yellow;Red;RentYellowRed;aRYR
-Rent Utility-Railroad;Action;1;2;Utility;Railroad;RentUtilityRailroad;aRURa
-Rent Blue-Green;Action;1;2;Blue;Green;RentBlueGreen;aRBG
+Pass Go;Action;1;10;None;None;PassGo;aPG1
+Double The Rent;Action;1;2;None;None;DoubleTheRent;aDTR1
+Just Say No;Action;4;3;None;None;JustSayNo;aJSN4
+Hotel;Action;4;2;None;None;Hotel;aHt4
+House;Action;3;3;None;None;House;aHu3
+Deal Breaker;Action;5;2;None;None;DealBreaker;aDB5
+Sly Deal;Action;3;3;None;None;SlyDeal;aSD3
+Forced Deal;Action;3;3;None;None;ForcedDeal;aFD3
+It's My Birthday;Action;2;3;None;None;ItsMyBirthday;aIMB2
+Debt Collector;Action;3;3;None;None;DebtCollector;aDC3
+Rent Wild;Action;3;3;All;None;RentWild;aRW3
+Rent Light Blue-Brown;Action;1;2;LightBlue;Brown;RentLightBlueBrown;aRLbBr1
+Rent Orange-Pink;Action;1;2;Orange;Pink;RentOrangePink;aROP1
+Rent Yellow-Red;Action;1;2;Yellow;Red;RentYellowRed;aRYR1
+Rent Utility-Railroad;Action;1;2;Utility;Railroad;RentUtilityRailroad;aRURa1
+Rent Blue-Green;Action;1;2;Blue;Green;RentBlueGreen;aRBG1
 Ten Million;Money;10;1;None;None;None;m10
 One Million;Money;1;6;None;None;None;m1
 Two Million;Money;2;5;None;None;None;m2

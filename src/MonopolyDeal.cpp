@@ -17,16 +17,17 @@ public:
 
     ConsoleGame()
     {
-#if NDEBUG
+//#if NDEBUG
         const uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-#else
-        const uint32_t seed = 1337322228u;
-#endif
-        int playersCount;
-        do {
-            std::cout << "Enter players count(2-5): ";
-            std::cin >> playersCount;
-        } while (!Game::Init(playersCount, seed));
+//#else
+//        const uint32_t seed = 1337322228u;
+//#endif
+        //int playersCount;
+        //do {
+        //    std::cout << "Enter players count(2-5): ";
+        //    std::cin >> playersCount;
+        //} while (!Game::Init(playersCount, seed));
+        Game::Init(5, seed);
     }
 
 private:

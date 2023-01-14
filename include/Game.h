@@ -12,7 +12,7 @@ class Game
     using Players = std::vector<Player>;
     using Controllers = std::vector<std::shared_ptr<IController>>;
     using Deck = std::deque<CardContainerElem>;
-    using Draw = std::vector<CardContainerElem>;
+    using Discard = std::vector<CardContainerElem>;
     static constexpr uint32_t c_MinPlayersCount = 2;
     static constexpr uint32_t c_MaxPlayersCount = 5;
     static constexpr int c_StartCardsCount = 5;
@@ -30,7 +30,7 @@ public:
     int Run();
 
     size_t GetDeckCardsCount() const { return m_Deck.size(); }
-    const Draw& GetDrawCards() const { return m_Draw; }
+    const Discard& GetDrawCards() const { return m_Discard; }
     size_t GetPlayersCount() const { return m_Players.size(); }
     size_t GetCurrentPlayerIndex() const { return m_CurrentPlayerIndex; }
     const Players& GetPlayers() const { return m_Players; }
@@ -54,7 +54,9 @@ public:
         std::vector<int>& emptyHotelSetsIndexes,
         std::vector<int>& fullSetsWithoutHouseIndexes,
         std::vector<int>& fullSetsWithoutHotelsIndexes) const;
+    bool IsDraw() const;
 private:
+    int CardsInGameCount() const;
     void BeginTurn();
     ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);
     ETurnOutput MoveHouseOrHotelFromTableToSet(Player& currentPlayer);
@@ -89,7 +91,7 @@ private:
     Controllers m_Controllers;
     Players m_Players;
     Deck m_Deck;
-    Draw m_Draw;
+    Discard m_Discard;
     uint32_t m_CurrentPlayerIndex = 0;
     int m_CurrentPlayerTurnCounter = 0;
     bool m_bGameIsNotEnded = true;

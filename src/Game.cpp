@@ -130,7 +130,7 @@ namespace Monopoly
         }
 
         srand(seed);
-        m_CurrentPlayerIndex = rand() % (playersCount + 1);
+        m_CurrentPlayerIndex = rand() % playersCount;
 
         return true;
     }
@@ -139,16 +139,21 @@ namespace Monopoly
     {
         while (m_bGameIsNotEnded)
         {
+            if (IsDraw())
+            {
+                std::cout << "Draw!\n";
+                return 0;
+            }
             GameBody();
         }
+        std::cout << "AI " << m_CurrentPlayerIndex << " won!\n";
         return 0;
     }
 
     void Game::GameBody()
     {
         static uint32_t saveNumber = 0;
-        Game::Save("newsave" + std::to_string(saveNumber++) + ".json");
-
+        //Game::Save("newsave" + std::to_string(saveNumber++) + ".json");
         BeginTurn();
         ETurnOutput turnOutput;
         do {
@@ -171,7 +176,10 @@ namespace Monopoly
                 std::cerr << "Index is incorrect!\n";
             }
         } while (turnOutput != Game::ETurnOutput::NextPlayer && turnOutput != Game::ETurnOutput::GameOver);
-
+        if (turnOutput == Game::ETurnOutput::GameOver)
+        {
+            return;
+        }
         if (const auto extraCardsCount = Game::GetExtraCardsCount(); extraCardsCount > 0)
         {
             std::vector<int> container;
@@ -180,11 +188,39 @@ namespace Monopoly
             RemoveExtraCards(container);
         }
         EndTurn();
+        assert(CardsInGameCount() == 106);
+    }
+
+    int Game::CardsInGameCount() const
+    {
+        // method for debug
+        int res = 0;
+        res += GetDeckCardsCount();
+        res += GetDrawCards().size();
+        for (const auto& p : GetPlayers())
+        {
+            res += p.GetCardsInHand().size();
+            res += p.GetCardsInBank().size();
+            for (const auto& set : p.GetCardSets())
+            {
+                res += set.GetCards().size();
+                res += set.IsHasHotel();
+                res += set.IsHasHouse();
+            }
+        }
+        return res;
     }
 
     void Game::BeginTurn()
     {
-        PlayerTakeCardsFromDeck(m_Players[m_CurrentPlayerIndex], c_PassGoCardsCount);
+        if (m_Players[m_CurrentPlayerIndex].GetCardsInHand().size() == 0)
+        {
+            PlayerTakeCardsFromDeck(m_Players[m_CurrentPlayerIndex], c_StartCardsCount);
+        }
+        else
+        {
+            PlayerTakeCardsFromDeck(m_Players[m_CurrentPlayerIndex], c_PassGoCardsCount);
+        }
     }
 
     Game::ETurnOutput Game::Turn(const ETurn input, const int cardIndex, const int setIndexForFlip)
@@ -335,13 +371,25 @@ namespace Monopoly
         }
     }
 
+    bool Game::IsDraw() const
+    {
+        if (!m_Deck.empty())
+            return false;
+
+        for(const auto& p : m_Players)
+            if(!p.GetCardsInHand().empty())
+                return false;
+
+        return true;
+    }
+
     Game::ETurnOutput Game::ProcessActionCard(Player& currentPlayer, const CardContainerElem& card)
     {
         switch (card->GetActionType())
         {
         case EActionType::PassGo:
         {
-            m_Draw.emplace_back(card);
+            m_Discard.emplace_back(card);
             return PassGo(currentPlayer);
         }
         case EActionType::Hotel:
@@ -457,7 +505,7 @@ namespace Monopoly
         {
             player.AddSet(m_Players[victimIndex].RemoveSet(setIndex));
         }
-        m_Draw.emplace_back(card);
+        m_Discard.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -473,7 +521,7 @@ namespace Monopoly
         {
             player.AddProperty(m_Players[victimIndex].RemoveCardFromSet(setIndex, propertyIndexInSet));
         }
-        m_Draw.emplace_back(card);
+        m_Discard.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -485,7 +533,8 @@ namespace Monopoly
         m_Controllers[m_CurrentPlayerIndex]->InputForcedDeal(victimIndex, victimSetIndex, 
             victimPropertyIndexInSet, playerSetIndex, playerPropertyIndexInSet);
 
-        if (m_Players[victimIndex].GetCardSets()[victimIndex].IsFull() || m_Players[victimIndex].GetCardSets()[playerSetIndex].IsFull())
+        if (m_Players[victimIndex].GetCardSets()[victimSetIndex].IsFull() 
+            || m_Players[m_CurrentPlayerIndex].GetCardSets()[playerSetIndex].IsFull())
             return ETurnOutput::IncorrectIndex;
 
         if (!JustSayNo(victimIndex, m_CurrentPlayerIndex))
@@ -495,7 +544,7 @@ namespace Monopoly
             player.AddProperty(victimCard);
             m_Players[victimIndex].AddProperty(instigatorCard);
         }
-        m_Draw.emplace_back(card);
+        m_Discard.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -508,7 +557,7 @@ namespace Monopoly
                 Pay(i, c_ItsMyBirthdayAmount);
             }
         }
-        m_Draw.emplace_back(card);
+        m_Discard.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -521,7 +570,7 @@ namespace Monopoly
         {
             Pay(victimIndex, c_DebtCollectorAmount);
         }
-        m_Draw.emplace_back(card);
+        m_Discard.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -533,7 +582,7 @@ namespace Monopoly
         auto payValue = player.GetCardSets()[setIndex].GetPayValue();
         auto howManyDoubleTheRent = DoubleTheRent(player, payValue);
         JustSayNoDoubleTheRent(howManyDoubleTheRent, victimIndex, payValue);
-        m_Draw.emplace_back(card);
+        m_Discard.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -553,7 +602,7 @@ namespace Monopoly
                 Pay(i, pv);
             }
         }
-        m_Draw.emplace_back(card);
+        m_Discard.emplace_back(card);
         return ETurnOutput::CardProcessed;
     }
 
@@ -563,7 +612,7 @@ namespace Monopoly
         if (i >= 0 && m_Controllers[victimIndex]->InputUseJustSayNo(victimIndex))
         {
             const auto card = m_Players[victimIndex].RemoveCardFromHand(i);
-            m_Draw.emplace_back(card);
+            m_Discard.emplace_back(card);
             return !JustSayNo(instigatorIndex, victimIndex);
         }
         return false;
@@ -587,7 +636,7 @@ namespace Monopoly
                     if (player.GetCardsInHand()[j]->GetActionType() == EActionType::DoubleTheRent)
                     {
                         const auto card = player.RemoveCardFromHand(j);
-                        m_Draw.emplace_back(card);
+                        m_Discard.emplace_back(card);
                     }
                 }
             }
@@ -652,9 +701,9 @@ namespace Monopoly
                 auto money = m_Players[victimIndex].RemoveCardsFromBank(moneyIndices);
                 m_Players[m_CurrentPlayerIndex].AddCardsToBank(std::move(money));
             }
-            for (const auto& set : setIndices)
+            for (const auto& [key, value] : setIndices)
             {
-                auto properties = m_Players[victimIndex].RemoveCardsWithValueNotZeroFromSet(set.first, set.second);
+                auto properties = m_Players[victimIndex].RemoveCardsWithValueNotZeroFromSet(key, value);
                 for (const auto& card : properties)
                 {
                     m_Players[m_CurrentPlayerIndex].AddProperty(card);
@@ -719,7 +768,7 @@ namespace Monopoly
         }
         {
             json draw;
-            for (const auto& e : m_Draw)
+            for (const auto& e : m_Discard)
                 draw += CardToJson(e);
             save[c_JSON_Draw] = draw;
         }
@@ -841,7 +890,7 @@ namespace Monopoly
 
         if (const auto& draw = save[c_JSON_Draw]; draw.is_null() == false)
             for (const auto& card : draw)
-                m_Draw.push_back(MakeCard(card));
+                m_Discard.push_back(MakeCard(card));
 
         const auto players = save[c_JSON_Players];
         for (const auto& player : players)
