@@ -29,6 +29,7 @@ public:
             controllers.emplace_back(std::make_shared<Monopoly::AIController>(i, *this));
         }
         Game::InitNewGame(playersCount, seed);
+        Game::InitControllers(std::move(controllers));
     }
 
 private:

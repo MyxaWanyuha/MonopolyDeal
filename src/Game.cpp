@@ -155,8 +155,6 @@ namespace Monopoly
 
     void Game::GameBody()
     {
-        static uint32_t saveNumber = 0;
-        //Game::Save("newsave" + std::to_string(saveNumber++) + ".json");
         BeginTurn();
         ETurnOutput turnOutput;
         do {
@@ -178,8 +176,6 @@ namespace Monopoly
             {
                 std::cerr << "Index is incorrect!\n";
             }
-            auto i = CardsInGameCount();
-            //assert(i == 106);
         } while (turnOutput != Game::ETurnOutput::NextPlayer && turnOutput != Game::ETurnOutput::GameOver);
         if (turnOutput == Game::ETurnOutput::GameOver)
         {
