@@ -7,7 +7,7 @@ set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT $
 set(GAME_PUBLIC_INCLUDES
     include/Game.h
     include/JsonConstants.h
-    include/IGameInput.h
+    include/IControllerIO.h
 )
 
 set(GAME_PRIVATE_INCLUDES
@@ -15,18 +15,15 @@ set(GAME_PRIVATE_INCLUDES
     src/CardSet.h
     src/Player.h
     src/CSVRow.h
-    src/JSONGame.h
-    src/AIController.h
-    src/PlayerController.h
+    src/controllers/AIController.h
+    src/controllers/PlayerController.h
 )
 
 set(GAME_PRIVATE_SOURCE
     src/CardSet.cpp
     src/Game.cpp
     src/Player.cpp
-    src/JSONGame.cpp
-    src/AIController.cpp
-    src/PlayerController.cpp
+    src/controllers/AIController.cpp
 )
 
 set(GAME_ALL_SOURCES
@@ -91,6 +88,8 @@ target_link_libraries(${TEST_PROJECT_NAME}
   ${PROJECT_NAME}
   GTest::gtest_main
 )
+
+target_include_directories(${TEST_PROJECT_NAME} PUBLIC include)
 
 include(GoogleTest)
 gtest_discover_tests(${TEST_PROJECT_NAME})

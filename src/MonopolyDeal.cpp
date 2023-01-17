@@ -1,11 +1,11 @@
 #include "Monopoly_pch.h"
 #include "Game.h"
-#include "PlayerController.h"
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 #include "JsonConstants.h"
 #include <fstream>
+#include <controllers/AIController.h>
 
 class ConsoleGame : public Monopoly::Game
 {
@@ -22,12 +22,13 @@ public:
 //#else
 //        const uint32_t seed = 1337322228u;
 //#endif
-        //int playersCount;
-        //do {
-        //    std::cout << "Enter players count(2-5): ";
-        //    std::cin >> playersCount;
-        //} while (!Game::Init(playersCount, seed));
-        Game::Init(5, seed);
+        const int playersCount = 5;
+        Game::Controllers controllers;
+        for (uint32_t i = 0; i < playersCount; ++i)
+        {
+            controllers.emplace_back(std::make_shared<Monopoly::AIController>(i, *this));
+        }
+        Game::InitNewGame(playersCount, seed);
     }
 
 private:

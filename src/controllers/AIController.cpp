@@ -1,7 +1,6 @@
 #include "Monopoly_pch.h"
 
 #include "AIController.h"
-#include "IGameInput.h"
 #include "JsonConstants.h"
 
 namespace Monopoly
@@ -69,7 +68,7 @@ namespace Monopoly
         {
             int index = 0;
             do {
-                index = rand() % IController::m_Game.GetPlayers()[m_Index].GetCardsInHand().size();
+                index = rand() % IControllerIO::m_Game.GetPlayers()[m_Index].GetCardsInHand().size();
             } while (container.end() != std::find(container.begin(), container.end(), index));
             container.emplace_back(index);
         }
@@ -83,7 +82,7 @@ namespace Monopoly
         setIndexForFlip = m_Turn.contains(Monopoly::c_JSON_PlayerSetIndex) ? m_Turn[Monopoly::c_JSON_PlayerSetIndex] : -1;
     }
 
-    IGameInput::EActionInput AIController::GetActionInput() const
+    IControllerIO::EActionInput AIController::GetActionInput() const
     {
         return m_Turn[Monopoly::c_JSON_ActionCommand];
     }

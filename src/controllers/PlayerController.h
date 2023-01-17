@@ -1,19 +1,19 @@
 #pragma once
 #include "Monopoly_pch.h"
-#include "IGameInput.h"
+#include "IControllerIO.h"
 
 namespace Monopoly
 {
 
-class PlayerController : public IController
+class ConsolePlayerController : public IControllerIO
 {
 public:
-    PlayerController(const int index, const Game& g)
-        : IController(index, g)
+    ConsolePlayerController(const int index, const Game& g)
+        : IControllerIO(index, g)
     {
     }
 
-    virtual ~PlayerController() = default;
+    virtual ~ConsolePlayerController() = default;
     auto Color(Monopoly::EColor color) const
     {
         for (auto it = Monopoly::c_ColorStrToEnum.begin(); it != Monopoly::c_ColorStrToEnum.end(); ++it) {
@@ -466,7 +466,5 @@ public:
     }
 
 };
-
-
 
 }

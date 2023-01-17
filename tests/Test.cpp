@@ -1,29 +1,23 @@
+#include "Monopoly_pch.h"
 #include <gtest/gtest.h>
 #include "Game.h"
+using namespace Monopoly;
+constexpr uint32_t seed = 1337322228u;
 
-class TestGame : public Monopoly::Game
+class TestController : public IControllerIO
 {
-    FRIEND_TEST(GameTest, CreateGame);
-    FRIEND_TEST(GameTest, LoadGame);
-    FRIEND_TEST(GameTest, Play);
 public:
-    TestGame(const std::string& fileName)
-        : Game(fileName)
+    TestController(const int index, const Game& g)
+        : IControllerIO(index, g)
     {
-    }
-
-    TestGame(const int playersCount)
-    {
-        const uint32_t seed = 1337322228u;
-        Game::Init(playersCount, seed);
     }
 
     int m_VictimIndex = 0;
     int m_CardIndex = 0;
     int m_SetIndex = 0;
     int m_PropertyIndexInSet = 0;
-    ETurn m_Turn = ETurn::Pass;
-    EActionInput m_ACtionInput = EActionInput::Play;
+    IControllerIO::ETurn m_Turn = IControllerIO::ETurn::Pass;
+    IControllerIO::EActionInput m_ACtionInput = IControllerIO::EActionInput::Play;
     int m_VictimSetIndex = 0;
     int m_VictimPropertyIndexInSet = 0;
     int m_PlayerSetIndex = 0;
@@ -125,35 +119,23 @@ public:
     {
     }
 
-    int CardsInGameCount()
-    {
-        int res = 0;
-        res += GetDeckCardsCount();
-        res += GetDrawCards().size();
-        for (const auto& p : GetPlayers())
-        {
-            res += p.GetCardsInHand().size();
-            res += p.GetCardsInBank().size();
-            for (const auto& set : p.GetCardSets())
-            {
-                res += set.GetCards().size();
-                res += set.IsHasHotel();
-                res += set.IsHasHouse();
-            }
-        }
-        return res;
-    }
-
 };
 
-using namespace Monopoly;
 TEST(GameTest, CreateGame)
 {
-    const int playerCount = 5;
-    TestGame g(playerCount);
-    EXPECT_EQ(g.GetDeckCardsCount(), 106 - playerCount * 5);
+    constexpr int playersCount = 2;
+    Game g;
+    {
+        g.InitNewGame(playersCount, seed);
+        Game::Controllers controllers;
+        for (int i = 0; i < playersCount; ++i)
+            controllers.emplace_back(std::make_shared<TestController>(i, g));
+        g.InitControllers(std::move(controllers));
+    }
+
+    EXPECT_EQ(g.GetDeckCardsCount(), 106 - playersCount * 5);
     EXPECT_EQ(g.GetDrawCards().size(), 0);
-    EXPECT_EQ(g.GetPlayersCount(), playerCount);
+    EXPECT_EQ(g.GetPlayersCount(), playersCount);
     for (const auto& p : g.GetPlayers())
     {
         EXPECT_EQ(p.GetCardsInHand().size(), 5);
@@ -164,7 +146,7 @@ TEST(GameTest, CreateGame)
 
 TEST(GameTest, LoadGame)
 {
-    TestGame g("tests/saves/FivePlayers.json");
+    Game g("tests/saves/FivePlayers.json");
     EXPECT_EQ(g.CardsInGameCount(), 106);
     EXPECT_EQ(g.GetDeckCardsCount(), 75);
     EXPECT_EQ(g.GetDrawCards().size(), 0);

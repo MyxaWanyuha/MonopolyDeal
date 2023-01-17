@@ -1,7 +1,5 @@
 #include "Monopoly_pch.h"
 #include "CSVRow.h"
-#include "PlayerController.h"
-#include "AIController.h"
 
 #include <fstream>
 #include "JsonConstants.h"
@@ -108,7 +106,7 @@ namespace Monopoly
         Load(fileName);
     }
 
-    bool Game::Init(const uint32_t playersCount, const uint32_t seed)
+    bool Game::InitNewGame(const uint32_t playersCount, const uint32_t seed)
     {
         std::shuffle(m_Deck.begin(), m_Deck.end(), std::default_random_engine(seed));
         if (playersCount < c_MinPlayersCount || playersCount > c_MaxPlayersCount)
@@ -123,15 +121,20 @@ namespace Monopoly
             PlayerTakeCardsFromDeck(m_Players[i], c_StartCardsCount);
         }
 
-        //m_Controllers.emplace_back(std::make_shared<PlayerController>(0, *this));
-        for (uint32_t i = 0; i < playersCount; ++i)
-        {
-            m_Controllers.emplace_back(std::make_shared<AIController>(i, *this));
-        }
-
         srand(seed);
         m_CurrentPlayerIndex = rand() % playersCount;
 
+        return true;
+    }
+
+    bool Game::InitControllers(Controllers&& controllers)
+    {
+        if (controllers.size() != m_Players.size())
+        {
+            std::cerr << "Invalide controllers count!\n";
+            return false;
+        }
+        m_Controllers = controllers;
         return true;
     }
 

@@ -2,10 +2,9 @@
 namespace Monopoly
 {
 
-class IGameInput
+class IControllerIO
 {
 public:
-
     enum class EActionInput
     {
         ToBank = 0,
@@ -18,7 +17,7 @@ public:
         PlayCard = 3,
         HouseHotelOnTable = 4
     };
-    virtual ~IGameInput() = default;
+    virtual ~IControllerIO() = default;
     virtual void ShowPublicPlayerData(const int index) const = 0;
     virtual void ShowPrivatePlayerData(const int index) const = 0;
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) = 0;
@@ -40,16 +39,12 @@ public:
         int& emptyIndex, int& setIndex) = 0;
     virtual bool InputUseJustSayNo(const int victimIndex) const = 0;
     virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const = 0;
-};
 
-class IController : public IGameInput
-{
 protected:
-    IController(const int index, const class Game& g)
+    IControllerIO(const int index, const class Game& g)
         : m_Index(index), m_Game(g)
     {
     }
-    virtual ~IController() = default;
     int m_Index;
     const Game& m_Game;
 };

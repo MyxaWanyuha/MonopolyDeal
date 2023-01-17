@@ -1,16 +1,16 @@
 #pragma once
-#include "IGameInput.h"
+#include "IControllerIO.h"
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 namespace Monopoly
 {
 
-class AIController : public IController
+class AIController : public IControllerIO
 {
 public:
     AIController(const int index, const Game& g)
-        : IController(index, g)
+        : IControllerIO(index, g)
     {
     }
 
