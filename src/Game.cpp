@@ -190,8 +190,6 @@ namespace Monopoly
             RemoveExtraCards(container);
         }
         EndTurn();
-        auto i = CardsInGameCount();
-        //assert(i == 106);
     }
 
     int Game::CardsInGameCount() const
@@ -379,10 +377,16 @@ namespace Monopoly
         }
     }
 
-    bool Game::IsDraw() const
+    bool Game::IsDraw()
     {
-        if (!m_Deck.empty())
+        if (m_Deck.empty() && !m_Discard.empty())
+        {
+            std::shuffle(m_Discard.begin(), m_Discard.end(), std::default_random_engine(1337));
+            for (const auto& card : m_Discard)
+                m_Deck.emplace_back(card);
+            m_Discard.clear();
             return false;
+        }
 
         for(const auto& p : m_Players)
             if(p.GetCardsInHand().size() != 0)

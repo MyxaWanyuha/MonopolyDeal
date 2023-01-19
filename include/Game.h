@@ -56,7 +56,7 @@ public:
         std::vector<int>& emptyHotelSetsIndexes,
         std::vector<int>& fullSetsWithoutHouseIndexes,
         std::vector<int>& fullSetsWithoutHotelsIndexes) const;
-    bool IsDraw() const;
+    bool IsDraw();
     int CardsInGameCount() const;
 private:
     void BeginTurn();
