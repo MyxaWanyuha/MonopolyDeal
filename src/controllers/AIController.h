@@ -16,7 +16,7 @@ public:
 
     virtual ~AIController() = default;
 
-    void SelectTurn() const;
+    virtual void SelectTurn() const;
     void ShowPlayerData() const;
 
     virtual void ShowPublicPlayerData(const int index) const override;
@@ -40,15 +40,14 @@ public:
     virtual bool InputUseJustSayNo(const int victimIndex) const override;
     virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const override;
 
-private:
+protected:
     json GetAllValidPlayerTurns(int index) const;
     void ValidMoveEnhancementToFullSet(std::vector<int>& emptyIndexes, std::vector<int>& fullSetsIndexes, json& turns) const;
     json ExtraActionInformation(const Monopoly::CardContainerElem& card, const Monopoly::Player& player) const;
     void RentTwoColorAction(const Monopoly::Player& player, Monopoly::EColor color1, Monopoly::EColor color2, json& res) const;
     json GetDoubleTheRentMayUse(const Monopoly::Player& player) const;
 
-private:
-    mutable json m_Turn;
+    mutable json m_Move;
 };
 
 }

@@ -6,69 +6,59 @@ using json = nlohmann::json;
 #include "JsonConstants.h"
 #include <fstream>
 #include <controllers/AIController.h>
-
-class ConsoleGame : public Monopoly::Game
-{
-public:
-    ConsoleGame(const std::string& fileName)
-        : Game(fileName)
-    {
-    }
-
-    ConsoleGame()
-    {
-//#if NDEBUG
-        const uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
-//#else
-//        const uint32_t seed = 1337322228u;
-//#endif
-        const int playersCount = 5;
-        Game::Controllers controllers;
-        for (uint32_t i = 0; i < playersCount; ++i)
-        {
-            controllers.emplace_back(std::make_shared<Monopoly::AIController>(i, *this));
-        }
-        Game::InitNewGame(playersCount, seed);
-        Game::InitControllers(std::move(controllers));
-    }
-
-private:
-
-};
+#include <controllers/NeuronController.h>
 
 int main()
 {
+    int MLWins = 0;
+    int AIWins = 0;
+    int draws = 0;
+    const int gamesCount = 1000;
+    for (int i = 0; i < gamesCount; ++i)
     {
-        while (true)
-        {
-            std::unique_ptr<ConsoleGame> g = std::make_unique<ConsoleGame>();
-            g->Run();
-        }
-    }
-    std::unique_ptr<ConsoleGame> g;
+        std::cout << "game " << i << "\n";
+        auto game = std::make_unique<Monopoly::Game>();
+        const uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 
-    int input = 2;
-    while (true)
-    {/*
-        std::cout << "Load(1) or new game(2):";
-        std::cin >> input;
-        if (input == 1)
+        const int playersCount = 5;
+        Monopoly::Game::Controllers controllers;
+        auto neuro = std::make_shared<Monopoly::NeuroController>(0, *game);
+        controllers.emplace_back(neuro);//NeuroController
+        for (uint32_t i = 1; i < playersCount; ++i)
         {
-            std::cout << "Enter filename:";
-            std::string name;
-            std::cin >> name;
-            std::ifstream f(name.c_str());
-            if (f.good() == false)
-                continue;
-            g = std::make_unique<ConsoleGame>(name);
-            break;
+            controllers.emplace_back(std::make_shared<Monopoly::AIController>(i, *game));
         }
-        else*/ if (input == 2)
+        game->InitNewGame(playersCount, seed);
+        game->InitControllers(controllers);
+
+        while (game->GetGameIsNotEnded())
         {
-            g = std::make_unique<ConsoleGame>();
-            break;
+            if (game->IsDraw())
+            {
+                ++draws;
+                for (auto& n : neuro->m_InvolvedNeurons)
+                    n.second += 5.0;
+                break;
+            }
+            game->GameBody();
         }
-        std::cerr << "Incorrect input!\n";
+        if (game->GetWinnderIndex() == 0)
+        {
+            ++MLWins;
+            for (auto& n : neuro->m_InvolvedNeurons)
+                n.second += 100.0;
+        }
+        else if (game->GetWinnderIndex() != -1)
+        {
+            ++AIWins;
+            for (auto& n : neuro->m_InvolvedNeurons)
+                n.second -= 50.0;
+        }
+        for (auto& n : neuro->m_InvolvedNeurons)
+            neuro->s_Neurons[n.first] += n.second;
+        neuro->m_InvolvedNeurons.clear();
     }
-    return g->Run();
+    std::cout << "ML Wins: " << MLWins / static_cast<double>(gamesCount) * 100.0 << "%\n";
+    std::cout << "AI Wins: " << AIWins / static_cast<double>(gamesCount) * 100.0 << "%\n";
+    std::cout << "Draws: " << draws / static_cast<double>(gamesCount) * 100.0 << "%\n";
 }

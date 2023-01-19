@@ -12,6 +12,7 @@ namespace Monopoly
     Game::Game()
     {
         m_CurrentPlayerTurnCounter = c_TurnCardsCount;
+        m_CurrentPlayerTurnCounterForAllMoves = m_CurrentPlayerTurnCounter * 2;
         std::ifstream file("cardList.csv");
         if (!file.is_open())
         {
@@ -127,7 +128,7 @@ namespace Monopoly
         return true;
     }
 
-    bool Game::InitControllers(Controllers&& controllers)
+    bool Game::InitControllers(const Controllers& controllers)
     {
         if (controllers.size() != m_Players.size())
         {
@@ -140,7 +141,7 @@ namespace Monopoly
 
     int Game::Run()
     {
-        while (m_bGameIsNotEnded)
+        while (GetGameIsNotEnded())
         {
             if (IsDraw())
             {
@@ -227,6 +228,11 @@ namespace Monopoly
 
     Game::ETurnOutput Game::Turn(const ETurn input, const int cardIndex, const int setIndexForFlip)
     {
+        --m_CurrentPlayerTurnCounterForAllMoves;
+        if (m_CurrentPlayerTurnCounterForAllMoves <= 0)
+        {
+            return ETurnOutput::NextPlayer;
+        }
         auto& currentPlayer = m_Players[m_CurrentPlayerIndex];
         switch (input)
         {
@@ -241,7 +247,7 @@ namespace Monopoly
                 currentPlayer.AddProperty(card);
                 if (currentPlayer.IsWinner())
                 {
-                    m_bGameIsNotEnded = false;
+                    m_WinnerIndex = m_CurrentPlayerIndex;
                     return ETurnOutput::GameOver;
                 }
                 return ETurnOutput::CardProcessed;
@@ -265,7 +271,7 @@ namespace Monopoly
                 currentPlayer.AddProperty(card);
                 if (currentPlayer.IsWinner())
                 {
-                    m_bGameIsNotEnded = false;
+                    m_WinnerIndex = m_CurrentPlayerIndex;
                     return ETurnOutput::GameOver;
                 }
             }
@@ -285,14 +291,14 @@ namespace Monopoly
                 }
                 if (currentPlayer.IsWinner())
                 {
-                    m_bGameIsNotEnded = false;
+                    m_WinnerIndex = m_CurrentPlayerIndex;
                     return ETurnOutput::GameOver;
                 }
-                for (const auto& player : m_Players)
+                for (int i = 0; i < m_Players.size(); ++i)
                 {
-                    if (player.IsWinner())
+                    if (m_Players[i].IsWinner())
                     {
-                        m_bGameIsNotEnded = false;
+                        m_WinnerIndex = i;
                         return ETurnOutput::GameOver;
                     }
                 }
@@ -379,7 +385,7 @@ namespace Monopoly
             return false;
 
         for(const auto& p : m_Players)
-            if(!p.GetCardsInHand().empty())
+            if(p.GetCardsInHand().size() != 0)
                 return false;
 
         return true;
@@ -446,6 +452,7 @@ namespace Monopoly
     {
         m_CurrentPlayerIndex = (m_CurrentPlayerIndex + 1) % m_Players.size();
         m_CurrentPlayerTurnCounter = c_TurnCardsCount;
+        m_CurrentPlayerTurnCounterForAllMoves = m_CurrentPlayerTurnCounter * 2;
     }
 
     void Game::PlayerTakeCardsFromDeck(Player& player, const int count)

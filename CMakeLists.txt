@@ -17,6 +17,7 @@ set(GAME_PRIVATE_INCLUDES
     src/CSVRow.h
     src/controllers/AIController.h
     src/controllers/PlayerController.h
+    src/controllers/NeuronController.h
 )
 
 set(GAME_PRIVATE_SOURCE
@@ -24,6 +25,7 @@ set(GAME_PRIVATE_SOURCE
     src/Game.cpp
     src/Player.cpp
     src/controllers/AIController.cpp
+    src/controllers/NeuronController.cpp
 )
 
 set(GAME_ALL_SOURCES

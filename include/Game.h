@@ -25,8 +25,9 @@ public:
     Game();
     Game(const std::string& fileName);
     bool InitNewGame(const uint32_t playersCount, const uint32_t seed);
-    bool InitControllers(Controllers&& controllers);
-
+    bool InitControllers(const Controllers& controllers);
+    bool GetGameIsNotEnded() const { return m_WinnerIndex == -1; }
+    int GetWinnderIndex() const { return m_WinnerIndex; }
     static constexpr int c_FullSetsCountForWin = 3;
     int Run();
 
@@ -95,7 +96,8 @@ private:
     Discard m_Discard;
     uint32_t m_CurrentPlayerIndex = 0;
     int m_CurrentPlayerTurnCounter = 0;
-    bool m_bGameIsNotEnded = true;
+    int m_CurrentPlayerTurnCounterForAllMoves = 0;
+    int m_WinnerIndex = -1;
 };
 
 }

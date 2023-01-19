@@ -8,9 +8,9 @@ namespace Monopoly
 
     void AIController::SelectTurn() const
     {
-        const auto validTurns = GetAllValidPlayerTurns(m_Index);
-        const auto index = rand() % validTurns.size();
-        m_Turn = validTurns[index];
+        const auto validMoves = GetAllValidPlayerTurns(m_Index);
+        const auto index = rand() % validMoves.size();
+        m_Move = validMoves[index];
         //std::cout << "\nAI " << m_Index << " did " << m_Turn << "\n\n";
     }
 
@@ -77,47 +77,47 @@ namespace Monopoly
     void AIController::InputTurn(ETurn& turn, int& cardIndex, int& setIndexForFlip) const
     {
         SelectTurn();
-        turn = m_Turn[Monopoly::c_JSON_Command];
-        cardIndex = m_Turn.contains(Monopoly::c_JSON_CardIndex) ? m_Turn[Monopoly::c_JSON_CardIndex] : -1;
-        setIndexForFlip = m_Turn.contains(Monopoly::c_JSON_PlayerSetIndex) ? m_Turn[Monopoly::c_JSON_PlayerSetIndex] : -1;
+        turn = m_Move[Monopoly::c_JSON_Command];
+        cardIndex = m_Move.contains(Monopoly::c_JSON_CardIndex) ? m_Move[Monopoly::c_JSON_CardIndex] : -1;
+        setIndexForFlip = m_Move.contains(Monopoly::c_JSON_PlayerSetIndex) ? m_Move[Monopoly::c_JSON_PlayerSetIndex] : -1;
     }
 
     IControllerIO::EActionInput AIController::GetActionInput() const
     {
-        return m_Turn[Monopoly::c_JSON_ActionCommand];
+        return m_Move[Monopoly::c_JSON_ActionCommand];
     }
 
     int AIController::SelectSetIndex(const std::vector<int>& indices) const
     {
-        return m_Turn[Monopoly::c_JSON_PlayerSetIndex];
+        return m_Move[Monopoly::c_JSON_PlayerSetIndex];
     }
 
     void AIController::InputDealBreaker(int& victimIndex, int& setIndex) const
     {
-        victimIndex = m_Turn[Monopoly::c_JSON_VictimIndex];
-        setIndex = m_Turn[Monopoly::c_JSON_VictimSetIndex];
+        victimIndex = m_Move[Monopoly::c_JSON_VictimIndex];
+        setIndex = m_Move[Monopoly::c_JSON_VictimSetIndex];
     }
 
     void AIController::InputSlyDeal(int& victimIndex, int& setIndex, int& propertyIndexInSet)
     {
-        victimIndex = m_Turn[Monopoly::c_JSON_VictimIndex];
-        setIndex = m_Turn[Monopoly::c_JSON_VictimSetIndex];
-        propertyIndexInSet = m_Turn[Monopoly::c_JSON_VictimPropertyIndexInSet];
+        victimIndex = m_Move[Monopoly::c_JSON_VictimIndex];
+        setIndex = m_Move[Monopoly::c_JSON_VictimSetIndex];
+        propertyIndexInSet = m_Move[Monopoly::c_JSON_VictimPropertyIndexInSet];
     }
 
     void AIController::InputForcedDeal(int& victimIndex, int& victimSetIndex, 
         int& victimPropertyIndexInSet, int& playerSetIndex, int& playerPropertyIndexInSet)
     {
-        victimIndex = m_Turn[Monopoly::c_JSON_VictimIndex];
-        victimSetIndex = m_Turn[Monopoly::c_JSON_VictimSetIndex];
-        victimPropertyIndexInSet = m_Turn[Monopoly::c_JSON_VictimPropertyIndexInSet];
-        playerSetIndex = m_Turn[Monopoly::c_JSON_PlayerSetIndex];
-        playerPropertyIndexInSet = m_Turn[Monopoly::c_JSON_PlayerPropertyIndexInSet];
+        victimIndex = m_Move[Monopoly::c_JSON_VictimIndex];
+        victimSetIndex = m_Move[Monopoly::c_JSON_VictimSetIndex];
+        victimPropertyIndexInSet = m_Move[Monopoly::c_JSON_VictimPropertyIndexInSet];
+        playerSetIndex = m_Move[Monopoly::c_JSON_PlayerSetIndex];
+        playerPropertyIndexInSet = m_Move[Monopoly::c_JSON_PlayerPropertyIndexInSet];
     }
 
     void AIController::InputDebtCollector(int& victimIndex)
     {
-         victimIndex = m_Turn[Monopoly::c_JSON_VictimIndex];
+         victimIndex = m_Move[Monopoly::c_JSON_VictimIndex];
     }
 
     void AIController::InputPay(const int victimIndex, const int amount, std::vector<int>& moneyIndices,
@@ -146,7 +146,6 @@ namespace Monopoly
                     continue;
                 const auto setIndex = rand() % player.GetCardSets().size();
                 const auto& set = player.GetCardSets()[setIndex];
-                int addIndex = 0;
                 if (set.GetCards().empty())
                 {
                     if (set.IsHasHouse())
@@ -162,6 +161,7 @@ namespace Monopoly
                 }
                 else
                 {
+                    int addIndex = 0;
                     if (set.IsHasHouse()) // index of house is set.size()
                         ++addIndex;
                     if (set.IsHasHotel()) // index of hotel is set.size() + 1
@@ -191,21 +191,21 @@ namespace Monopoly
 
     void AIController::InputRentWild(int& victimIndex, int& setIndex)
     {
-        victimIndex = m_Turn[Monopoly::c_JSON_VictimIndex];
-        setIndex = m_Turn[Monopoly::c_JSON_PlayerSetIndex];
+        victimIndex = m_Move[Monopoly::c_JSON_VictimIndex];
+        setIndex = m_Move[Monopoly::c_JSON_PlayerSetIndex];
     }
 
     void AIController::InputRentTwoColors(int& setIndex)
     {
-        setIndex = m_Turn[Monopoly::c_JSON_PlayerSetIndex];
+        setIndex = m_Move[Monopoly::c_JSON_PlayerSetIndex];
     }
 
     void AIController::InputMoveHouseHotelFromTableToFullSet(const std::vector<int>& emptyHouseSetsIndexes,
         const std::vector<int>& emptyHotelSetsIndexes, const std::vector<int>& fullSetsWithoutHouseIndexes,
         const std::vector<int>& fullSetsWithoutHotelsIndexes, int& emptyIndex, int& setIndex)
     {
-        emptyIndex = m_Turn[Monopoly::c_JSON_EmptySetIndex];
-        setIndex = m_Turn[Monopoly::c_JSON_PlayerSetIndex];
+        emptyIndex = m_Move[Monopoly::c_JSON_EmptySetIndex];
+        setIndex = m_Move[Monopoly::c_JSON_PlayerSetIndex];
     }
 
     bool AIController::InputUseJustSayNo(const int victimIndex) const
@@ -215,7 +215,7 @@ namespace Monopoly
 
     void AIController::InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const
     {
-        howManyCardsToUse = m_Turn[Monopoly::c_JSON_DoubleTheRentUseCount];
+        howManyCardsToUse = m_Move[Monopoly::c_JSON_DoubleTheRentUseCount];
     }
 
     json AIController::GetAllValidPlayerTurns(int index) const
