@@ -13,8 +13,10 @@
 #include <string>
 #include <cstdint>
 #include <cassert>
+#include <fstream>
 
 #include "Card.h"
 #include "CardSet.h"
 #include "Game.h"
 #include "Player.h"
+#include "CSVRow.h"

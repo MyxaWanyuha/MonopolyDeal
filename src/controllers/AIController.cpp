@@ -6,60 +6,11 @@
 namespace Monopoly
 {
 
-    void AIController::SelectTurn() const
+    void AIController::SelectMove() const
     {
         const auto validMoves = GetAllValidPlayerTurns(m_Index);
         const auto index = rand() % validMoves.size();
         m_Move = validMoves[index];
-        //std::cout << "\nAI " << m_Index << " did " << m_Turn << "\n\n";
-    }
-
-    void ShowCard(const int index, const Monopoly::CardContainerElem& card)
-    {
-        std::cout << "\t\t\t" << index << ". " << card->GetShortData() << "\n";
-    }
-
-    void AIController::ShowPlayerData() const
-    {
-        const auto& player = m_Game.GetPlayers()[m_Index];
-        std::cout << "\tCurrent player AI(" << m_Index << "): \n";
-        std::cout << "\t\tHand count: " << player.GetCardsInHand().size() << "\n";
-        for (int i = 0; i < player.GetCardsInHand().size(); ++i)
-        {
-            ShowCard(i, player.GetCardsInHand()[i]);
-        }
-
-        std::cout << "\t\tBank count: " << player.GetCardsInBank().size() << "\n";
-        for (int i = 0; i < player.GetCardsInBank().size(); ++i)
-        {
-            ShowCard(i, player.GetCardsInBank()[i]);
-        }
-        std::cout << "\t\tSets count: " << player.GetCardSets().size() << "\n";
-        for (int j = 0; j < player.GetCardSets().size(); ++j)
-        {
-            std::cout << "\t\tCard set " << j << "\n";
-            const auto& set = player.GetCardSets()[j];
-            for (int i = 0; i < set.GetCards().size(); ++i)
-            {
-                ShowCard(i, set.GetCards()[i]);
-            }
-            if (set.GetColor() != Monopoly::EColor::Railroad && set.GetColor() != Monopoly::EColor::Utility)
-            {
-                std::cout << "\t\t\tHouse: " << set.IsHasHouse();
-                std::cout << "\t\t\tHotel: " << set.IsHasHotel();
-            }
-            std::cout << "\n";
-        }
-    }
-
-    void AIController::ShowPublicPlayerData(const int index) const
-    {
-        //ShowPlayerData();
-    }
-
-    void AIController::ShowPrivatePlayerData(const int index) const
-    {
-        //ShowPlayerData();
     }
 
     void AIController::InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container)
@@ -74,9 +25,10 @@ namespace Monopoly
         }
     }
 
-    void AIController::InputTurn(ETurn& turn, int& cardIndex, int& setIndexForFlip) const
+    void AIController::InputMove(ETurn& turn, int& cardIndex, int& setIndexForFlip) const
     {
-        SelectTurn();
+        SelectMove();
+        std::cout << "Player " << m_Index << " did " << m_Move << "\n\n";
         turn = m_Move[Monopoly::c_JSON_Command];
         cardIndex = m_Move.contains(Monopoly::c_JSON_CardIndex) ? m_Move[Monopoly::c_JSON_CardIndex] : -1;
         setIndexForFlip = m_Move.contains(Monopoly::c_JSON_PlayerSetIndex) ? m_Move[Monopoly::c_JSON_PlayerSetIndex] : -1;

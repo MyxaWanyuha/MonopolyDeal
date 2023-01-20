@@ -16,13 +16,10 @@ public:
 
     virtual ~AIController() = default;
 
-    virtual void SelectTurn() const;
-    void ShowPlayerData() const;
+    virtual void SelectMove() const;
 
-    virtual void ShowPublicPlayerData(const int index) const override;
-    virtual void ShowPrivatePlayerData(const int index) const override;
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) override;
-    virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndexForFlip) const override;
+    virtual void InputMove(ETurn& turn, int& cardIndex, int& setIndexForFlip) const override;
     virtual EActionInput GetActionInput() const override;
     virtual int SelectSetIndex(const std::vector<int>& indices) const override;
     virtual void InputDealBreaker(int& victimIndex, int& setIndex) const override;

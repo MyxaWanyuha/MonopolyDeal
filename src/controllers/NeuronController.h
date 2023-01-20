@@ -22,13 +22,10 @@ class NeuroController : public AIController
     };
 
 public:
-    NeuroController(const int index, const Game& g)
-        : AIController(index, g)
-    {
-    }
+    NeuroController(const int index, const Game& g);
     virtual ~NeuroController() = default;
     Move PlayCardMove(const json& currentMove) const;
-    virtual void SelectTurn() const override;
+    virtual void SelectMove() const override;
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) override;
     virtual void InputPay(const int victimIndex, const int amount, std::vector<int>& moneyIndices,
         std::unordered_map<int, std::vector<int>>& setIndices) override;
@@ -36,6 +33,8 @@ public:
 
     static std::unordered_map<std::string, double> s_Neurons;
     mutable std::unordered_map<std::string, double> m_InvolvedNeurons;
+
+    static void SaveNeurons();
 };
 
 }

@@ -24,6 +24,7 @@ set(GAME_PRIVATE_SOURCE
     src/CardSet.cpp
     src/Game.cpp
     src/Player.cpp
+    src/CSVRow.cpp
     src/controllers/AIController.cpp
     src/controllers/NeuronController.cpp
 )

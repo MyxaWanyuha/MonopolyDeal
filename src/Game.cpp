@@ -139,6 +139,11 @@ namespace Monopoly
         return true;
     }
 
+    void Game::InitOutputFunction(const std::function<void(const Game&)>& showGameData)
+    {
+        ShowGameData = showGameData;
+    }
+
     int Game::Run()
     {
         while (GetGameIsNotEnded())
@@ -159,15 +164,10 @@ namespace Monopoly
         BeginTurn();
         ETurnOutput turnOutput;
         do {
-            m_Controllers[m_CurrentPlayerIndex]->ShowPrivatePlayerData(m_CurrentPlayerIndex);
-            for (int i = 0; i < GetPlayers().size(); ++i)
-            {
-                if (i != GetCurrentPlayerIndex())
-                    m_Controllers[i]->ShowPublicPlayerData(i);
-            }
+            ShowGameData(*this);
             auto turn = ETurn::Pass;
             int cardIndex = 0, setIndex = 0;
-            m_Controllers[m_CurrentPlayerIndex]->InputTurn(turn, cardIndex, setIndex);
+            m_Controllers[m_CurrentPlayerIndex]->InputMove(turn, cardIndex, setIndex);
             turnOutput = Turn(turn, cardIndex, setIndex);
             if (turnOutput == Game::ETurnOutput::IncorrectInput)
             {

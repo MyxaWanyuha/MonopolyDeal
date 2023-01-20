@@ -1,4 +1,5 @@
 #pragma once
+#include <functional>
 #include "Player.h"
 #include "IControllerIO.h"
 
@@ -26,6 +27,7 @@ public:
     Game(const std::string& fileName);
     bool InitNewGame(const uint32_t playersCount, const uint32_t seed);
     bool InitControllers(const Controllers& controllers);
+    void InitOutputFunction(const std::function<void(const Game&)>& showGameData);
     bool GetGameIsNotEnded() const { return m_WinnerIndex == -1; }
     int GetWinnderIndex() const { return m_WinnerIndex; }
     static constexpr int c_FullSetsCountForWin = 3;
@@ -98,6 +100,8 @@ private:
     int m_CurrentPlayerTurnCounter = 0;
     int m_CurrentPlayerTurnCounterForAllMoves = 0;
     int m_WinnerIndex = -1;
+
+    std::function<void(const Game&)> ShowGameData = nullptr;
 };
 
 }

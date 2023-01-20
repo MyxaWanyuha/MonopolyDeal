@@ -18,10 +18,8 @@ public:
         HouseHotelOnTable = 4
     };
     virtual ~IControllerIO() = default;
-    virtual void ShowPublicPlayerData(const int index) const = 0;
-    virtual void ShowPrivatePlayerData(const int index) const = 0;
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) = 0;
-    virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndexForFlip) const = 0;
+    virtual void InputMove(ETurn& turn, int& cardIndex, int& setIndexForFlip) const = 0;
     virtual EActionInput GetActionInput() const = 0;
     virtual int SelectSetIndex(const std::vector<int>& indices) const = 0;
     virtual void InputDealBreaker(int& victimIndex, int& setIndex) const = 0;

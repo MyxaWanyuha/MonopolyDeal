@@ -30,7 +30,7 @@ public:
     {
     }
 
-    virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const override
+    virtual void InputMove(ETurn& turn, int& cardIndex, int& setIndex) const override
     {
         cardIndex = m_CardIndex;
         setIndex = m_SetIndex;
@@ -109,14 +109,6 @@ public:
     virtual void InputDoubleTheRent(const int doubleTheRentCount, int& howManyCardsToUse) const override
     {
         // TODO
-    }
-
-    virtual void ShowPublicPlayerData(const int index) const override
-    {
-    }
-
-    virtual void ShowPrivatePlayerData(const int index) const override
-    {
     }
 
 };

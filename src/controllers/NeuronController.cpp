@@ -6,6 +6,29 @@
 namespace Monopoly
 {
     std::unordered_map<std::string, double> NeuroController::s_Neurons;
+    const char* s_NeuronsFilename = "neurons.csv";
+
+    NeuroController::NeuroController(const int index, const Game& g)
+        : AIController(index, g)
+    {
+        if (s_Neurons.empty())
+        {
+            std::ifstream file(s_NeuronsFilename);
+            if (!file.is_open())
+            {
+                std::cerr << "Couldn't find a file \"" << s_NeuronsFilename  << "\"!\n";
+                exit(1);
+            }
+            
+            CSVRow row;
+            while (file >> row)
+            {
+                double weight;
+                auto result = std::from_chars(row[1].data(), row[1].data() + row[1].size(), weight);
+                s_Neurons[std::string(row[0])] = weight;
+            }
+        }
+    }
 
     NeuroController::Move NeuroController::PlayCardMove(const json& currentMove) const
     {
@@ -148,7 +171,7 @@ namespace Monopoly
         return res;
     }
 
-    void NeuroController::SelectTurn() const
+    void NeuroController::SelectMove() const
     {
         const auto validMoves = GetAllValidPlayerTurns(m_Index);
         std::vector<Move> moves;
@@ -201,7 +224,7 @@ namespace Monopoly
                 m_InvolvedNeurons[tag];
                 move.weight += s_Neurons[tag];
             }
-            //move.weight /= move.tags.size();
+
             moves.emplace_back(move);
         }
 
@@ -341,6 +364,20 @@ namespace Monopoly
         {
             m_InvolvedNeurons["NotUseJustSayNo"];
             return false;
+        }
+    }
+
+    void NeuroController::SaveNeurons()
+    {
+        std::ofstream save(s_NeuronsFilename);
+        if (!save.is_open())
+        {
+            std::cerr << "Can't open file \""<< s_NeuronsFilename << "\" to save neurons!\n";
+            return;
+        }
+        for (const auto& neuron : s_Neurons)
+        {
+            save << neuron.first << ";" << neuron.second << "\n";
         }
     }
 
