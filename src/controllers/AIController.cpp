@@ -28,7 +28,7 @@ namespace Monopoly
     void AIController::InputMove(ETurn& turn, int& cardIndex, int& setIndexForFlip) const
     {
         SelectMove();
-        std::cout << "Player " << m_Index << " did " << m_Move << "\n\n";
+        //std::cout << "Player " << m_Index << " did " << m_Move << "\n\n";
         turn = m_Move[Monopoly::c_JSON_Command];
         cardIndex = m_Move.contains(Monopoly::c_JSON_CardIndex) ? m_Move[Monopoly::c_JSON_CardIndex] : -1;
         setIndexForFlip = m_Move.contains(Monopoly::c_JSON_PlayerSetIndex) ? m_Move[Monopoly::c_JSON_PlayerSetIndex] : -1;
@@ -176,6 +176,7 @@ namespace Monopoly
         {
             json pass;
             pass[Monopoly::c_JSON_Command] = ETurn::Pass;
+            pass[m_TurnValueStr] = 0;
             turns += pass;
         }
         const auto& player = m_Game.GetPlayers()[index];
@@ -183,22 +184,36 @@ namespace Monopoly
         for (int i = 0; i < player.GetCardsInHand().size(); ++i)
         {
             const auto& card = player.GetCardsInHand()[i];
-            if (card->GetType() == Monopoly::ECardType::Money || card->GetType() == Monopoly::ECardType::Property)
+            if (card->GetType() == Monopoly::ECardType::Money)
             {
-                turns += { {Monopoly::c_JSON_Command, ETurn::PlayCard}, { Monopoly::c_JSON_CardIndex, i } };
+                turns += { {Monopoly::c_JSON_Command, ETurn::PlayCard}, { Monopoly::c_JSON_CardIndex, i }, { m_TurnValueStr, card->GetValue() }};
+            }
+            else if (card->GetType() == Monopoly::ECardType::Property)
+            {
+                auto value = card->GetValue();
+                for (const auto& set : player.GetCardSets())
+                {
+                    if (set.GetColor() == card->GetCurrentColor() && !set.IsFull())
+                    {
+                        value += set.GetPayValue();
+                    }
+                }
+                turns += { {Monopoly::c_JSON_Command, ETurn::PlayCard}, { Monopoly::c_JSON_CardIndex, i }, { m_TurnValueStr, value }};
             }
             else if (card->GetType() == Monopoly::ECardType::Action)
             {
                 auto extra = ExtraActionInformation(card, player);
-
                 json eCopy;
                 eCopy[Monopoly::c_JSON_Command] = ETurn::PlayCard;
                 eCopy[Monopoly::c_JSON_CardIndex] = i;
                 eCopy[Monopoly::c_JSON_ActionCommand] = EActionInput::ToBank;
+                eCopy[m_TurnValueStr] = card->GetValue();
                 turns += eCopy;
 
                 for (auto& e : extra)
                 {
+                    if (e.contains(m_TurnValueStr))
+                        eCopy[m_TurnValueStr] = e[m_TurnValueStr];
                     eCopy[Monopoly::c_JSON_ActionCommand] = EActionInput::Play;
                     eCopy.merge_patch(e);
                     turns += eCopy;
@@ -218,6 +233,7 @@ namespace Monopoly
                     flip[Monopoly::c_JSON_Command] = ETurn::FlipCard;
                     flip[Monopoly::c_JSON_CardIndex] = j;
                     flip[Monopoly::c_JSON_PlayerSetIndex] = i;
+                    flip[m_TurnValueStr] = set.IsFull() ? -set.GetPayValue() : card->GetValue();
                     turns += flip;
                 }
             }
@@ -249,6 +265,7 @@ namespace Monopoly
                     hh[Monopoly::c_JSON_Command] = ETurn::HouseHotelOnTable;
                     hh[Monopoly::c_JSON_EmptySetIndex] = emptyIndexes[i];
                     hh[Monopoly::c_JSON_PlayerSetIndex] = fullSetsIndexes[j];
+                    hh[m_TurnValueStr] = m_Game.GetPlayers()[m_Index].GetCardSets()[j].GetPayValue();
                     turns += hh;
                 }
             }
@@ -260,12 +277,6 @@ namespace Monopoly
         json res;
         switch (card->GetActionType())
         {
-        case Monopoly::EActionType::PassGo:
-        {}break;
-        case Monopoly::EActionType::DoubleTheRent:
-        {}break;
-        case Monopoly::EActionType::JustSayNo:
-        {}break;
         case Monopoly::EActionType::Hotel:
         {
             for (int i = 0; i < player.GetCardSets().size(); ++i)
@@ -275,9 +286,7 @@ namespace Monopoly
                     && set.GetColor() != Monopoly::EColor::Utility
                     && set.IsFull() && set.IsHasHouse() && !set.IsHasHotel())
                 {
-                    json v;
-                    v[Monopoly::c_JSON_PlayerSetIndex] = i;
-                    res += v;
+                    res += { {Monopoly::c_JSON_PlayerSetIndex, i}, { m_TurnValueStr, set.GetPayValue() + card->GetValue() } };
                 }
             }
         }break;
@@ -290,9 +299,7 @@ namespace Monopoly
                     && set.GetColor() != Monopoly::EColor::Utility
                     && set.IsFull() && !set.IsHasHouse())
                 {
-                    json v;
-                    v[Monopoly::c_JSON_PlayerSetIndex] = i;
-                    res += v;
+                    res += { {Monopoly::c_JSON_PlayerSetIndex, i}, { m_TurnValueStr, set.GetPayValue() + card->GetValue() } };
                 }
             }
         }break;
@@ -307,10 +314,9 @@ namespace Monopoly
                 {
                     if (victim.GetCardSets()[i].IsFull())
                     {
-                        json v;
-                        v[Monopoly::c_JSON_VictimIndex] = p;
-                        v[Monopoly::c_JSON_VictimSetIndex] = i;
-                        res += v;
+                        res += { {Monopoly::c_JSON_VictimIndex, p},
+                            { Monopoly::c_JSON_VictimSetIndex , i},
+                            { m_TurnValueStr, victim.GetCardSets()[i].GetPayValue() }};
                     }
                 }
             }
@@ -327,11 +333,21 @@ namespace Monopoly
                     if (set.IsFull()) continue;
                     for (int j = 0; j < set.GetCards().size(); ++j)
                     {
-                        json v;
-                        v[Monopoly::c_JSON_VictimIndex] = p;
-                        v[Monopoly::c_JSON_VictimSetIndex] = i;
-                        v[Monopoly::c_JSON_VictimPropertyIndexInSet] = j;
-                        res += v;
+                        auto max = 0;
+                        for (const auto& playerSet : player.GetCardSets())
+                        {
+                            if (!playerSet.IsFull()
+                                && playerSet.GetColor() == victim.GetCardSets()[i].GetColor()
+                                && playerSet.GetPayValue() > max)
+                            {
+                                max = playerSet.GetPayValue();
+                            }
+                        }
+                        res += {
+                            { Monopoly::c_JSON_VictimIndex, p },
+                            { Monopoly::c_JSON_VictimSetIndex , i },
+                            { Monopoly::c_JSON_VictimPropertyIndexInSet, j },
+                            { m_TurnValueStr, set.GetCards()[j]->GetValue() + max } };
                     }
                 }
             }
@@ -348,6 +364,7 @@ namespace Monopoly
                     json v;
                     v[Monopoly::c_JSON_PlayerSetIndex] = i;
                     v[Monopoly::c_JSON_PlayerPropertyIndexInSet] = j;
+                    v[m_TurnValueStr] = -set.GetCards()[j]->GetValue();
                     playerProperties += v;
                 }
             }
@@ -372,6 +389,12 @@ namespace Monopoly
                             v[Monopoly::c_JSON_VictimSetIndex] = i;
                             v[Monopoly::c_JSON_VictimPropertyIndexInSet] = j;
                             turn.merge_patch(v);
+                            const int value = turn[m_TurnValueStr];
+                            
+                            //const int setInd = turn[Monopoly::c_JSON_PlayerSetIndex];
+                            //const int propInd = turn[Monopoly::c_JSON_PlayerPropertyIndexInSet];
+                            
+                            turn[m_TurnValueStr] = value + set.GetCards()[j]->GetValue();
                             res += turn;
                         }
                     }
@@ -379,7 +402,17 @@ namespace Monopoly
             }
         }break;
         case Monopoly::EActionType::ItsMyBirthday:
-        {}break;
+        {
+            int value = 0;
+            for (int p = 0; p < m_Game.GetPlayersCount(); ++p)
+            {
+                const auto& victim = m_Game.GetPlayers()[p];
+                if (&victim == &player) continue;
+                const auto victimValue = victim.CountBankAndPropertiesValues();
+                value += victimValue >= 2 ? 2 : victimValue;
+            }
+            res += { {m_TurnValueStr, value} };
+        }break;
         case Monopoly::EActionType::DebtCollector:
         {
             for (int i = 0; i < m_Game.GetPlayersCount(); ++i)
@@ -388,42 +421,42 @@ namespace Monopoly
                 if (&victim == &player) continue;
                 json v;
                 v[Monopoly::c_JSON_VictimIndex] = i;
+                const auto value = victim.CountBankAndPropertiesValues();
+                v[m_TurnValueStr] = value >= 5 ? 5 : value;
                 res += v;
             }
         }break;
         case Monopoly::EActionType::RentWild:
         {
-            json dtr = GetDoubleTheRentMayUse(player);
-            json sets;
+            if (player.GetCardSets().empty()) break;
+            const json dtr = GetDoubleTheRentMayUse(player);
             for (int i = 0; i < player.GetCardSets().size(); ++i)
             {
-                json v;
-                v[Monopoly::c_JSON_PlayerSetIndex] = i;
-                sets += v;
-            }
-            if (sets.empty()) break;
-
-            for (int i = 0; i < m_Game.GetPlayersCount(); ++i)
-            {
-                if (&m_Game.GetPlayers()[i] == &player) continue;
-                json victim;
-                victim[Monopoly::c_JSON_VictimIndex] = i;
-                for (const auto& set : sets)
+                const auto payValue = player.GetCardSets()[i].GetPayValue();
+                for (int j = 0; j < m_Game.GetPlayersCount(); ++j)
                 {
-                    json victimSet = victim;
-                    victimSet.merge_patch(set);
+                    if (&m_Game.GetPlayers()[j] == &player) continue;
+                    json inf;
+                    inf[Monopoly::c_JSON_PlayerSetIndex] = i;
+                    inf[Monopoly::c_JSON_VictimIndex] = j;
 
+                    const auto victimValue = m_Game.GetPlayers()[j].CountBankAndPropertiesValues();
                     if (dtr.empty())
                     {
-                        res += victimSet;
+                        inf[m_TurnValueStr] = std::min(victimValue, payValue);
+                        res += inf;
                     }
                     else
                     {
                         for (const auto& d : dtr)
                         {
-                            json victimSetDTR = victimSet;
-                            victimSetDTR.merge_patch(d);
-                            res += victimSetDTR;
+                            json victimCopyDTR = inf;
+                            const int useCount = d[Monopoly::c_JSON_DoubleTheRentUseCount];
+                            const int valueToPay = payValue * std::max(1, useCount);
+                            victimCopyDTR[m_TurnValueStr] = std::min(victimValue, valueToPay);
+
+                            victimCopyDTR.merge_patch(d);
+                            res += victimCopyDTR;
                         }
                     }
                 }
@@ -455,27 +488,48 @@ namespace Monopoly
 
     void AIController::RentTwoColorAction(const Monopoly::Player& player, Monopoly::EColor color1, Monopoly::EColor color2, json& res) const
     {
-        json dtr = GetDoubleTheRentMayUse(player);
-        json sets;
+        if (player.GetCardSets().empty()) return;
+        const json dtr = GetDoubleTheRentMayUse(player);
+        //json sets;
         for (int i = 0; i < player.GetCardSets().size(); ++i)
         {
             const auto color = player.GetCardSets()[i].GetColor();
             if (color == color1 || color == color2)
             {
-                json v;
-                v[Monopoly::c_JSON_PlayerSetIndex] = i;
-                sets += v;
+                auto payValue = player.GetCardSets()[i].GetPayValue();
+                json inf;
+                inf[Monopoly::c_JSON_PlayerSetIndex] = i;
+                //sets += inf;
                 if (dtr.empty())
                 {
-                    res += sets;
+                    int valueToPay = 0;
+                    for (int j = 0; j < m_Game.GetPlayersCount(); ++j)
+                    {
+                        if (&m_Game.GetPlayers()[j] == &player) continue;
+                        const auto victimValue = m_Game.GetPlayers()[j].CountBankAndPropertiesValues();
+                        valueToPay += std::min(payValue, victimValue);
+                    }
+                    inf[m_TurnValueStr] = valueToPay;
+                    res += inf;
                 }
                 else
                 {
                     for (const auto& d : dtr)
                     {
-                        json t = v;
-                        t.merge_patch(d);
-                        res += t;
+                        json infCopy = inf;
+                        const int useCount = d[Monopoly::c_JSON_DoubleTheRentUseCount];
+                        payValue *= std::max(1, useCount);
+                        int valueToPay = 0;
+                        for (int j = 0; j < m_Game.GetPlayersCount(); ++j)
+                        {
+                            if (&m_Game.GetPlayers()[j] == &player) continue;
+                            const auto victimValue = m_Game.GetPlayers()[j].CountBankAndPropertiesValues();
+                            valueToPay += std::min(payValue, victimValue);
+                        }
+                        infCopy[m_TurnValueStr] = valueToPay;
+
+                        infCopy.merge_patch(d);
+                        res += infCopy;
                     }
                 }
             }

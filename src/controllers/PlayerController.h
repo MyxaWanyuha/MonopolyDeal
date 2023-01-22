@@ -27,7 +27,7 @@ public:
         std::cout << "\t\t\t" << index << ". " << card->GetShortData() << "\n";
     }
 
-    virtual void InputTurn(ETurn& turn, int& cardIndex, int& setIndex) const override
+    virtual void InputMove(ETurn& turn, int& cardIndex, int& setIndex) const override
     {
         std::cout << "Input command:\n"
             << static_cast<int>(ETurn::Pass) << " - pass\n"
@@ -419,19 +419,19 @@ public:
         }
     }
 
-    virtual void ShowPublicPlayerData(const int index) const override
-    {
-        ShowPlayerData(index, true);
-    }
-    virtual void ShowPrivatePlayerData(const int index) const override
-    {
-        std::cout << "Deck cards count: " << m_Game.GetDeckCardsCount() << "\n";
-        std::cout << "Draw: \n";
-        for (int i = 0; i < m_Game.GetDrawCards().size(); ++i)
-            ShowCard(i, m_Game.GetDrawCards()[i]);
+    //virtual void ShowPublicPlayerData(const int index) const override
+    //{
+    //    ShowPlayerData(index, true);
+    //}
+    //virtual void ShowPrivatePlayerData(const int index) const override
+    //{
+    //    std::cout << "Deck cards count: " << m_Game.GetDeckCardsCount() << "\n";
+    //    std::cout << "Draw: \n";
+    //    for (int i = 0; i < m_Game.GetDrawCards().size(); ++i)
+    //        ShowCard(i, m_Game.GetDrawCards()[i]);
 
-        ShowPlayerData(index, false);
-    }
+    //    ShowPlayerData(index, false);
+    //}
 
     virtual void InputIndexesToRemove(const int extraCardsCount, std::vector<int>& container) override
     {

@@ -64,7 +64,8 @@ namespace Monopoly
         // GetCards().size() is index of House, GetCards().size() + 1 is index of Hotel 
         CardContainerElem RemoveCard(int index);
         CardContainer RemoveCardsWithValueNotZero(const std::vector<int>& cardIndices);
-
+        
+        int HowManyCardsNeedToFull() const;
         EColor GetColor() const;
         bool IsFull() const;
         bool AddHouse(const CardContainerElem& cardHouse);
@@ -75,6 +76,8 @@ namespace Monopoly
 
         const CardContainerElem& GetHouse() const { return m_House; }
         const CardContainerElem& GetHotel() const { return m_Hotel; }
+
+        const std::vector<int>& GetRentValues() const;
     private:
         CardContainer m_Cards;
         CardContainerElem m_House = nullptr;

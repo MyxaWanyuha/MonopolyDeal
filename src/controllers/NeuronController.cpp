@@ -14,18 +14,19 @@ namespace Monopoly
         if (s_Neurons.empty())
         {
             std::ifstream file(s_NeuronsFilename);
-            if (!file.is_open())
+            if (file.is_open())
             {
-                std::cerr << "Couldn't find a file \"" << s_NeuronsFilename  << "\"!\n";
-                exit(1);
+                CSVRow row;
+                while (file >> row)
+                {
+                    double weight;
+                    auto result = std::from_chars(row[1].data(), row[1].data() + row[1].size(), weight);
+                    s_Neurons[std::string(row[0])] = weight;
+                }
             }
-            
-            CSVRow row;
-            while (file >> row)
+            else
             {
-                double weight;
-                auto result = std::from_chars(row[1].data(), row[1].data() + row[1].size(), weight);
-                s_Neurons[std::string(row[0])] = weight;
+                std::cerr << "Couldn't find a file \"" << s_NeuronsFilename << "\"!\n";
             }
         }
     }
@@ -42,10 +43,10 @@ namespace Monopoly
         {
             case ECardType::Money:
             {
-                int bankValue = 0;
-                for (const auto& money : player.GetCardsInBank())
-                    bankValue += money->GetValue();
-                res.tags.emplace_back("BV" + std::to_string(bankValue));
+                //int bankValue = 0;
+                //for (const auto& money : player.GetCardsInBank())
+                //    bankValue += money->GetValue();
+                //res.tags.emplace_back("BV" + std::to_string(bankValue));
             }break;
             case ECardType::Property:
             {
@@ -72,7 +73,7 @@ namespace Monopoly
                 res.tags.emplace_back("actionInput" + std::to_string(static_cast<int>(actionInput)));
                 if (actionInput == EActionInput::ToBank)
                 {
-                    res.tags.emplace_back("m" + std::to_string(card->GetValue()));
+                    //res.tags.emplace_back("m" + std::to_string(card->GetValue()));
                 }
                 else
                 {
@@ -224,7 +225,7 @@ namespace Monopoly
                 m_InvolvedNeurons[tag];
                 move.weight += s_Neurons[tag];
             }
-
+            
             moves.emplace_back(move);
         }
 

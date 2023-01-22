@@ -1,4 +1,5 @@
 #include "Monopoly_pch.h"
+#include "CardSet.h"
 
 namespace Monopoly
 {
@@ -83,6 +84,13 @@ namespace Monopoly
         return cards;
     }
 
+    int CardSet::HowManyCardsNeedToFull() const
+    {
+        if (m_Color == EColor::None || m_Color == EColor::All)
+            return -1;
+        return m_Cards.size() - c_RentValues.at(m_Color).size();
+    }
+
     EColor CardSet::GetColor() const
     {
         return m_Color;
@@ -136,6 +144,13 @@ namespace Monopoly
         else if (IsHasHouse())
             res += 3;
         return res;
+    }
+
+    const std::vector<int>& CardSet::GetRentValues() const
+    {
+        if (m_Color == EColor::None || m_Color == EColor::All)
+            return {};
+        return c_RentValues.at(m_Color);
     }
 
 }

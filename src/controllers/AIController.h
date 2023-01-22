@@ -45,6 +45,7 @@ protected:
     json GetDoubleTheRentMayUse(const Monopoly::Player& player) const;
 
     mutable json m_Move;
+    const char* const m_TurnValueStr = "TurnValue";
 };
 
 }

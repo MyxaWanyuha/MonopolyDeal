@@ -18,6 +18,7 @@ set(GAME_PRIVATE_INCLUDES
     src/controllers/AIController.h
     src/controllers/PlayerController.h
     src/controllers/NeuronController.h
+    src/controllers/GreedyAIController.h
 )
 
 set(GAME_PRIVATE_SOURCE
@@ -27,6 +28,7 @@ set(GAME_PRIVATE_SOURCE
     src/CSVRow.cpp
     src/controllers/AIController.cpp
     src/controllers/NeuronController.cpp
+    src/controllers/GreedyAIController.cpp
 )
 
 set(GAME_ALL_SOURCES

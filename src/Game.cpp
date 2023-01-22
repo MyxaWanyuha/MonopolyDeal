@@ -392,6 +392,23 @@ namespace Monopoly
             if(p.GetCardsInHand().size() != 0)
                 return false;
 
+        {
+            int maxPlayerIndex = -1;
+            int maxValue = -1;
+            for (int i = 0; i < m_Players.size(); ++i)
+            {
+                const auto& player = m_Players[i];
+                //const auto fullSetsCount = player.GetCardSets().size() - player.GetNotFullSetsCount();
+                const int value = player.CountBankAndPropertiesValues();
+                if (value > maxValue)
+                {
+                    maxValue = value;
+                    maxPlayerIndex = i;
+                }
+            }
+            m_WinnerIndex = maxPlayerIndex;
+            return false;
+        }
         return true;
     }
 
