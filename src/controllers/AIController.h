@@ -9,6 +9,7 @@ namespace Monopoly
 class AIController : public IControllerIO
 {
 public:
+    virtual const char* ToString() const override { return "RandomAI"; }
     AIController(const int index, const Game& g)
         : IControllerIO(index, g)
     {

@@ -1,0 +1,8 @@
+{
+  "ShowGameOutput": true,
+  "GamesCount": 1000,
+  "ConsolePlayersCount": 1,
+  "GreedyAIsCount": 1,
+  "NeuroAIsCount": 1,
+  "RandomAIsCount": 2
+}

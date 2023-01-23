@@ -8,6 +8,7 @@ namespace Monopoly
 class ConsolePlayerController : public IControllerIO
 {
 public:
+    virtual const char* ToString() const override { return "ConsolePlayer"; }
     ConsolePlayerController(const int index, const Game& g)
         : IControllerIO(index, g)
     {

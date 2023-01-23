@@ -22,6 +22,7 @@ class NeuroController : public AIController
     };
 
 public:
+    virtual const char* ToString() const override { return "NeuroAI"; }
     NeuroController(const int index, const Game& g);
     virtual ~NeuroController() = default;
     Move PlayCardMove(const json& currentMove) const;

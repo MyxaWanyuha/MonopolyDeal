@@ -13,8 +13,6 @@ class Game
     using Players = std::vector<Player>;
     using Deck = std::deque<CardContainerElem>;
     using Discard = std::vector<CardContainerElem>;
-    static constexpr uint32_t c_MinPlayersCount = 2;
-    static constexpr uint32_t c_MaxPlayersCount = 5;
     static constexpr int c_StartCardsCount = 5;
     static constexpr int c_TurnCardsCount = 3;
     static constexpr int c_PassGoCardsCount = 2;
@@ -22,6 +20,8 @@ class Game
     static constexpr int c_ItsMyBirthdayAmount = 2;
     static constexpr int c_DebtCollectorAmount = 5;
 public:
+    static constexpr uint32_t c_MinPlayersCount = 2;
+    static constexpr uint32_t c_MaxPlayersCount = 5;
     using Controllers = std::vector<std::shared_ptr<IControllerIO>>;
     Game();
     Game(const std::string& fileName);
@@ -58,7 +58,7 @@ public:
         std::vector<int>& emptyHotelSetsIndexes,
         std::vector<int>& fullSetsWithoutHouseIndexes,
         std::vector<int>& fullSetsWithoutHotelsIndexes) const;
-    bool IsDraw();
+    bool CheckIfTheresCardsToPlay();
     int CardsInGameCount() const;
 private:
     void BeginTurn();

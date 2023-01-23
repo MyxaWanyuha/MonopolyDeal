@@ -2,7 +2,7 @@
 
 #include "AIController.h"
 #include "JsonConstants.h"
-
+extern bool s_ShowGameOutput;
 namespace Monopoly
 {
 
@@ -28,7 +28,9 @@ namespace Monopoly
     void AIController::InputMove(ETurn& turn, int& cardIndex, int& setIndexForFlip) const
     {
         SelectMove();
-        //std::cout << "Player " << m_Index << " did " << m_Move << "\n\n";
+
+        if(s_ShowGameOutput) 
+            std::cout << "Player " << m_Index << " did " << m_Move << "\n\n";
         turn = m_Move[Monopoly::c_JSON_Command];
         cardIndex = m_Move.contains(Monopoly::c_JSON_CardIndex) ? m_Move[Monopoly::c_JSON_CardIndex] : -1;
         setIndexForFlip = m_Move.contains(Monopoly::c_JSON_PlayerSetIndex) ? m_Move[Monopoly::c_JSON_PlayerSetIndex] : -1;

@@ -10,6 +10,8 @@ using json = nlohmann::json;
 #include <controllers/PlayerController.h>
 #include <controllers/GreedyAIController.h>
 
+bool s_ShowGameOutput = false;
+
 void ShowCard(const int index, const Monopoly::CardContainerElem& card)
 {
     std::cout << " " << index << "." << card->GetShortData() << " ";
@@ -66,127 +68,161 @@ void ShowPublicPlayerData(const Monopoly::Game& g, const int playerIndex)
 
 void ShowGameData(const Monopoly::Game& g)
 {
-    //ShowAllPlayerData(g, g.GetCurrentPlayerIndex());
-    //for (int i = 0; i < g.GetPlayers().size(); ++i)
-    //{
-    //    if (i != g.GetCurrentPlayerIndex())
-    //        ShowPublicPlayerData(g, i);
-    //}
-    //std::cout << "\n";
+    if (!s_ShowGameOutput) return;
+    ShowAllPlayerData(g, g.GetCurrentPlayerIndex());
+    for (int i = 0; i < g.GetPlayers().size(); ++i)
+    {
+        if (i != g.GetCurrentPlayerIndex())
+            ShowPublicPlayerData(g, i);
+    }
+    std::cout << "\n";
 }
 
-struct NeuroWithStatistics
+template<class T>
+struct ControllerWithStatistics
 {
-    NeuroWithStatistics() = default;
-    NeuroWithStatistics(uint32_t wins, uint32_t loses, std::shared_ptr<Monopoly::NeuroController> controller)
+    ControllerWithStatistics() = default;
+    ControllerWithStatistics(uint32_t wins, uint32_t loses, std::shared_ptr<T> controller)
         :wins(wins), loses(loses), controller(controller)
     {
     }
     uint32_t wins = 0;
     uint32_t loses = 0;
-    std::shared_ptr<Monopoly::NeuroController> controller;
+    std::shared_ptr<T> controller;
 };
 
 int main()
 {
-    int NeuroAIWins = 0;
-    int RandomAIWins = 0;
-    int draws = 0;
-    const int gamesCount = 1000;
     const double winReward = 200.0;
     const double loseReward = -50.0;
     const double drawReward = -5.0;
-    const int playersCount = 5;
-    const int neuroCount = 1;
 
-    std::vector<NeuroWithStatistics> neuroControllers;
-    neuroControllers.resize(neuroCount);
+    json settings;
+    std::ifstream ifSettings("settings.json");
+    if(!ifSettings.is_open())
+    {
+        std::cerr << "Can't find \"settings.json\"\n";
+        return 1;
+    }
+    ifSettings >> settings;
+    s_ShowGameOutput = settings["ShowGameOutput"];
+    const int gamesCount = settings["GamesCount"];
+    const int consolePlayersCount = settings["ConsolePlayersCount"];
+    const int randomAIsCount = settings["RandomAIsCount"];
+    const int greedyAIsCount = settings["GreedyAIsCount"];
+    const int neuroAIsCount = settings["NeuroAIsCount"];
+    const auto playersCount = consolePlayersCount + randomAIsCount + greedyAIsCount + neuroAIsCount;
+    if (playersCount < Monopoly::Game::c_MinPlayersCount
+        || neuroAIsCount > Monopoly::Game::c_MaxPlayersCount)
+    {
+        std::cerr << "Wrong controllers count! Check settings.json. Maximum controllers count is " << Monopoly::Game::c_MaxPlayersCount
+            << " minimum controllers count is " << Monopoly::Game::c_MinPlayersCount << ". You have " << playersCount << ".\n";
+        return 1;
+    }
+
+    std::vector<ControllerWithStatistics<Monopoly::IControllerIO>> allControllers;
+    allControllers.resize(playersCount);
+    std::vector<std::shared_ptr<Monopoly::NeuroController>> neuroControllers;
+    neuroControllers.resize(neuroAIsCount);
     for (int j = 0; j < gamesCount; ++j)
     {
-        std::cout << "game " << j << "   ";
+        std::cout << "game " << j << "  ";
         auto game = std::make_unique<Monopoly::Game>();
         game->InitOutputFunction(ShowGameData);
         const uint32_t seed = std::chrono::system_clock::now().time_since_epoch().count();
 
+        int initializedControllers = 0;
         Monopoly::Game::Controllers controllers;
-        for (uint32_t i = 0; i < neuroCount; ++i)
+        for (uint32_t i = initializedControllers; i < neuroAIsCount; ++i)
         {
             auto neuro = std::make_shared<Monopoly::NeuroController>(i, *game);
-            neuroControllers[i].controller = neuro;
+            neuroControllers[i] = neuro;
+            allControllers[i].controller = neuro;
             controllers.emplace_back(neuro);
+            ++initializedControllers;
         }
 
-        for (uint32_t i = neuroCount; i < playersCount; ++i)
-            controllers.emplace_back(std::make_shared<Monopoly::GreedyAIController>(i, *game));
-        
+        auto toInitCount = initializedControllers + greedyAIsCount;
+        for (uint32_t i = initializedControllers; i < toInitCount; ++i)
+        {
+            auto contr = std::make_shared<Monopoly::GreedyAIController>(i, *game);
+            controllers.emplace_back(contr);
+            allControllers[i].controller = contr;
+            ++initializedControllers;
+        }
+        toInitCount = initializedControllers + randomAIsCount;
+        for (uint32_t i = initializedControllers; i < toInitCount; ++i)
+        {
+            auto contr = std::make_shared<Monopoly::AIController>(i, *game);
+            controllers.emplace_back(contr);
+            allControllers[i].controller = contr;
+            ++initializedControllers;
+        }
+        toInitCount = initializedControllers + consolePlayersCount;
+        for (uint32_t i = initializedControllers; i < toInitCount; ++i)
+        {
+            auto contr = std::make_shared<Monopoly::ConsolePlayerController>(i, *game);
+            controllers.emplace_back(contr);
+            allControllers[i].controller = contr;
+            ++initializedControllers;
+        }
+
         game->InitNewGame(playersCount, seed);
         game->InitControllers(controllers);
 
         while (game->GetGameIsNotEnded())
         {
-            if (game->IsDraw())
-            {
-                ++draws;
-                std::cout << "Draw!\n";
-                for(auto& neuro : neuroControllers)
-                    for (auto& n : neuro.controller->m_InvolvedNeurons)
-                        n.second += drawReward;
-                break;
-            }
+            game->CheckIfTheresCardsToPlay();
             game->GameBody();
         }
         const auto winnerIndex = game->GetWinnderIndex();
         if (winnerIndex != -1)
         {
-            if (winnerIndex < neuroCount)
+            std::cout << allControllers[winnerIndex].controller->ToString() << " " << winnerIndex << " winner\n";
+            if (winnerIndex < neuroAIsCount)
             {
-                ++NeuroAIWins;
-                std::cout << "NeuroAI!\n";
-
-                for (uint32_t i = 0; i < neuroCount; ++i)
+                for (uint32_t i = 0; i < neuroAIsCount; ++i)
                 {
                     if (i != winnerIndex)
                     {
-                        for (auto& n : neuroControllers[i].controller->m_InvolvedNeurons)
+                        for (auto& n : neuroControllers[i]->m_InvolvedNeurons)
                             n.second += loseReward;
-                        ++neuroControllers[i].loses;
                     }
                     else
                     {
-                        for (auto& n : neuroControllers[winnerIndex].controller->m_InvolvedNeurons)
+                        for (auto& n : neuroControllers[winnerIndex]->m_InvolvedNeurons)
                             n.second += winReward;
-                        ++neuroControllers[i].wins;
                     }
                 }
             }
             else
             {
-                ++RandomAIWins;
-                std::cout << "RandomAI!\n";
                 for (auto& neuro : neuroControllers)
                 {
-                    for (auto& n : neuro.controller->m_InvolvedNeurons)
+                    for (auto& n : neuro->m_InvolvedNeurons)
                         n.second += loseReward;
-                    ++neuro.loses;
                 }
+            }
+
+            for (uint32_t i = 0; i < allControllers.size(); ++i)
+            {
+                if (i == winnerIndex)
+                    ++allControllers[i].wins;
+                else
+                    ++allControllers[i].loses;
             }
         }
         for (auto& neuro : neuroControllers)
         {
-            for (auto& n : neuro.controller->m_InvolvedNeurons)
+            for (auto& n : neuro->m_InvolvedNeurons)
                 Monopoly::NeuroController::s_Neurons[n.first] += n.second;
-            neuro.controller->m_InvolvedNeurons.clear();
-            neuro.controller = nullptr;
+            neuro->m_InvolvedNeurons.clear();
+            neuro = nullptr;
         }
     }
-    for (uint32_t i = 0; i < neuroCount; ++i)
-        std::cout << "Neuro " << i 
-        << " wins: " << neuroControllers[i].wins / static_cast<double>(gamesCount) * 100.0 
-        << " loses: " << neuroControllers[i].loses / static_cast<double>(gamesCount) * 100.0 << "\n";
-
-    std::cout << "NeuroAI Wins: " << NeuroAIWins / static_cast<double>(gamesCount) * 100.0 << "%\n";
-    std::cout << "RandomAI Wins: " << RandomAIWins / static_cast<double>(gamesCount) * 100.0 << "%\n";
-    std::cout << "Draws: " << draws / static_cast<double>(gamesCount) * 100.0 << "%\n";
-
+    for (uint32_t i = 0; i < allControllers.size(); ++i)
+        std::cout << allControllers[i].controller->ToString() << " " << i
+        << " wins: " << allControllers[i].wins / static_cast<double>(gamesCount) * 100.0 << "%"
+        << " loses: " << allControllers[i].loses / static_cast<double>(gamesCount) * 100.0 << "%\n";
     Monopoly::NeuroController::SaveNeurons();
 }

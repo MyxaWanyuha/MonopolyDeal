@@ -7,6 +7,7 @@ namespace Monopoly
 class GreedyAIController : public AIController
 {
 public:
+    virtual const char* ToString() const override { return "GreedyAI"; }
     GreedyAIController(const int index, const Game& g)
         : AIController(index, g)
     {

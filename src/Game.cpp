@@ -148,7 +148,7 @@ namespace Monopoly
     {
         while (GetGameIsNotEnded())
         {
-            if (IsDraw())
+            if (CheckIfTheresCardsToPlay())
             {
                 //std::cout << "Draw!\n";
                 return 1;
@@ -377,7 +377,7 @@ namespace Monopoly
         }
     }
 
-    bool Game::IsDraw()
+    bool Game::CheckIfTheresCardsToPlay()
     {
         if (m_Deck.empty() && !m_Discard.empty())
         {

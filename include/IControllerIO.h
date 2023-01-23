@@ -5,6 +5,7 @@ namespace Monopoly
 class IControllerIO
 {
 public:
+    virtual const char* ToString() const = 0;
     enum class EActionInput
     {
         ToBank = 0,
