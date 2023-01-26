@@ -158,7 +158,7 @@ public:
         std::vector<int> indices;
         propertyIndexInSet = -1;
         const auto& set = m_Game.GetPlayers()[player].GetCardSets()[setIndex];
-        const auto cardsCount = set.GetCards().size();
+        const auto cardsCount = set.GetProperties().size();
         for (int i = 0; i < cardsCount; ++i)
         {
             std::cout << i << ".\n";
@@ -407,9 +407,9 @@ public:
         {
             std::cout << "\t\tCard set " << j << "\n";
             const auto& set = player.GetCardSets()[j];
-            for (int i = 0; i < set.GetCards().size(); ++i)
+            for (int i = 0; i < set.GetProperties().size(); ++i)
             {
-                ShowCard(i, set.GetCards()[i]);
+                ShowCard(i, set.GetProperties()[i]);
             }
             if (set.GetColor() != Monopoly::EColor::Railroad && set.GetColor() != Monopoly::EColor::Utility)
             {

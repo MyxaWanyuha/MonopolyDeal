@@ -1,8 +1,8 @@
 {
-  "ShowGameOutput": true,
+  "ShowGameOutput": false,
   "GamesCount": 1000,
-  "ConsolePlayersCount": 1,
-  "GreedyAIsCount": 1,
+  "ConsolePlayersCount": 0,
+  "GreedyAIsCount": 4,
   "NeuroAIsCount": 1,
-  "RandomAIsCount": 2
+  "RandomAIsCount": 0
 }

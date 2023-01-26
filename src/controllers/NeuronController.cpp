@@ -103,7 +103,7 @@ namespace Monopoly
 
                             res.tags.emplace_back("VictimNotFullSetsCount" + std::to_string(victim.GetNotFullSetsCount()));
                             res.tags.emplace_back("VictimSetColor" + std::to_string(static_cast<int>(victimSet.GetColor())));
-                            res.tags.emplace_back( victimSet.GetCards()[victimPropertyIndexInSet]->GetShortData());
+                            res.tags.emplace_back( victimSet.GetProperties()[victimPropertyIndexInSet]->GetShortData());
                         }break;
                         case Monopoly::EActionType::ForcedDeal:
                         {
@@ -119,7 +119,7 @@ namespace Monopoly
 
                             res.tags.emplace_back("VictimNotFullSetsCount" + std::to_string(victim.GetNotFullSetsCount()));
                             res.tags.emplace_back("VictimSetColor" + std::to_string(static_cast<int>(victimSet.GetColor())));
-                            res.tags.emplace_back(victimSet.GetCards()[victimPropertyIndexInSet]->GetShortData());
+                            res.tags.emplace_back(victimSet.GetProperties()[victimPropertyIndexInSet]->GetShortData());
                         }break;
                         case Monopoly::EActionType::DebtCollector:
                         {
@@ -194,13 +194,13 @@ namespace Monopoly
                 {
                     const auto& setIndex = currentMove[Monopoly::c_JSON_PlayerSetIndex];
                     const auto& cardIndex = currentMove[Monopoly::c_JSON_CardIndex];
-                    const auto& card = player.GetCardSets()[setIndex].GetCards()[cardIndex];
+                    const auto& card = player.GetCardSets()[setIndex].GetProperties()[cardIndex];
                     const auto& currentColor = card->GetCurrentColor();
                     const auto& unusedColor = card->GetColor2();
                     move = Move({ "flip" + card->GetShortData() +
                         "currentColor" + std::to_string(static_cast<int>(currentColor)) +
                         "unusedColor" + std::to_string(static_cast<int>(unusedColor))});
-                    move.weight -= 1000000000000000000000000.0;
+                    //move.weight -= 1000000000000000000000000.0;
                 }break;
                 case ETurn::PlayCard:
                 {
@@ -222,8 +222,11 @@ namespace Monopoly
 
             for (const auto& tag : move.tags)
             {
+                const double weight = s_Neurons[tag];
+                const int greedyValue = validMoves[i][m_TurnValueStr];
                 m_InvolvedNeurons[tag];
-                move.weight += s_Neurons[tag];
+                move.weight += s_Neurons[tag] + greedyValue;
+                s_Neurons[tag] = move.weight;
             }
             
             moves.emplace_back(move);
@@ -300,23 +303,23 @@ namespace Monopoly
         for (int setIndex = 0; setIndex < sets.size(); ++setIndex)
         {
             const auto& set = player.GetCardSets()[setIndex];
-            for (int cardIndex = 0; cardIndex < set.GetCards().size(); ++cardIndex)
+            for (int cardIndex = 0; cardIndex < set.GetProperties().size(); ++cardIndex)
             {
-                const auto weight = s_Neurons[set.GetCards()[cardIndex]->GetShortData()];
-                m_InvolvedNeurons[set.GetCards()[cardIndex]->GetShortData()];
+                const auto weight = s_Neurons[set.GetProperties()[cardIndex]->GetShortData()];
+                m_InvolvedNeurons[set.GetProperties()[cardIndex]->GetShortData()];
                 cardsToPay.emplace_back(std::make_pair(std::make_pair(setIndex, cardIndex), weight));
             }
             if (set.IsHasHouse())
             {
                 const auto weight = s_Neurons[set.GetHouse()->GetShortData()];
                 m_InvolvedNeurons[set.GetHouse()->GetShortData()];
-                cardsToPay.emplace_back(std::make_pair(std::make_pair(setIndex, set.GetCards().size()), weight));
+                cardsToPay.emplace_back(std::make_pair(std::make_pair(setIndex, set.GetProperties().size()), weight));
             }
             else if (set.IsHasHotel())
             {
                 const auto weight = s_Neurons[set.GetHotel()->GetShortData()];
                 m_InvolvedNeurons[set.GetHotel()->GetShortData()];
-                cardsToPay.emplace_back(std::make_pair(std::make_pair(setIndex, set.GetCards().size() + 1), weight));
+                cardsToPay.emplace_back(std::make_pair(std::make_pair(setIndex, set.GetProperties().size() + 1), weight));
             }
         }
 
@@ -338,17 +341,17 @@ namespace Monopoly
             {
                 setIndices[cardsToPay[i].first.first].emplace_back(cardsToPay[i].first.second);
                 const auto& set = player.GetCardSets()[cardsToPay[i].first.first];
-                if (cardsToPay[i].first.second == set.GetCards().size())
+                if (cardsToPay[i].first.second == set.GetProperties().size())
                 {
                     currentAmount += set.GetHouse()->GetValue();
                 }
-                else if (cardsToPay[i].first.second == (set.GetCards().size() + 1))
+                else if (cardsToPay[i].first.second == (set.GetProperties().size() + 1))
                 {
                     currentAmount += set.GetHotel()->GetValue();
                 }
                 else
                 {
-                    currentAmount += set.GetCards()[cardsToPay[i].first.second]->GetValue();
+                    currentAmount += set.GetProperties()[cardsToPay[i].first.second]->GetValue();
                 }
             }
         }
@@ -378,7 +381,7 @@ namespace Monopoly
         }
         for (const auto& neuron : s_Neurons)
         {
-            save << neuron.first << ";" << neuron.second << "\n";
+            save << std::fixed << neuron.first << ";" << neuron.second << "\n";
         }
     }
 

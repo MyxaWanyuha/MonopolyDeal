@@ -54,7 +54,7 @@ namespace Monopoly
         auto& sets = const_cast<Player::CardSets&>(m_Game.GetPlayers()[m_Index].GetCardSets());
         std::sort(sets.begin(), sets.end(), [](const CardSet& set1, const CardSet& set2)
             {
-                return set1.IsEmpty() || (set1.GetCards().size() < set2.GetCards().size() && !set1.IsFull());
+                return set1.IsEmpty() || (set1.GetProperties().size() < set2.GetProperties().size() && !set1.IsFull());
             });
 
         for (int i = 0; i < sets.size(); ++i)
@@ -62,18 +62,18 @@ namespace Monopoly
             if (payAmount >= amount) return;
             if (sets[i].IsHasHotel())
             {
-                setIndices[i].emplace_back(sets[i].GetCards().size() + 1);
+                setIndices[i].emplace_back(sets[i].GetProperties().size() + 1);
                 payAmount += sets[i].GetHotel()->GetValue();
             }
 
             if (payAmount >= amount) return;
             if (sets[i].IsHasHouse())
             {
-                setIndices[i].emplace_back(sets[i].GetCards().size());
+                setIndices[i].emplace_back(sets[i].GetProperties().size());
                 payAmount += sets[i].GetHouse()->GetValue();
             }
 
-            for (int j = 0; j < sets[i].GetCards().size(); ++j)
+            for (int j = 0; j < sets[i].GetProperties().size(); ++j)
             {
                 if (payAmount >= amount)
                     return;

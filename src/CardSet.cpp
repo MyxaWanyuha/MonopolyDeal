@@ -23,12 +23,13 @@ namespace Monopoly
         {
             AddProperty(card);
         }
-        else
+        else if (card->GetActionType() == EActionType::House)
         {
-            if(card->GetActionType() == EActionType::House)
-                m_House = card;
-            else if (card->GetActionType() == EActionType::Hotel)
-                m_Hotel = card;
+            m_House = card;
+        }
+        else if (card->GetActionType() == EActionType::Hotel)
+        {
+            m_Hotel = card;
         }
     }
 
@@ -42,27 +43,27 @@ namespace Monopoly
             }
             else
             {
-                assert(m_Cards.size() < c_RentValues.at(m_Color).size());
+                assert(m_Properties.size() < c_RentValues.at(m_Color).size());
             }
-            m_Cards.push_back(card);
+            m_Properties.push_back(card);
         }
     }
 
     CardContainerElem CardSet::RemoveCard(int index)
     {
-        if (index == m_Cards.size())
+        if (index == GetHouseIndex())
         {
             auto res = std::move(m_House);
             m_House = nullptr;
             return res;
         }
-        if (index == (m_Cards.size() + 1))
+        if (index == GetHotelIndex())
         {
             auto res = std::move(m_Hotel);
             m_Hotel = nullptr;
             return res;
         }
-        return m_Cards.GetAndErase(index);
+        return m_Properties.GetAndErase(index);
     }
 
     CardContainer CardSet::RemoveCardsWithValueNotZero(const std::vector<int>& cardIndices)
@@ -70,17 +71,32 @@ namespace Monopoly
         CardContainer cards;
         for (const auto& i : cardIndices)
         {
-            // is house or hotel index
-            if (i >= m_Cards.size()) continue;
-            auto it = m_Cards.begin();
-            std::advance(it, i);
-            if ((*it)->GetValue() != 0)
+            if (i == GetHouseIndex())
             {
-                cards.emplace_back(*it);
-                *it = nullptr;
+                cards.emplace_back(std::move(m_House));
+                m_House = nullptr;
+            }
+            else if (i == GetHotelIndex())
+            {
+                cards.emplace_back(std::move(m_Hotel));
+                m_Hotel = nullptr;
+            }
+            else
+            {
+                auto it = m_Properties.begin();
+                std::advance(it, i);
+                if ((*it)->GetValue() != 0)
+                {
+                    cards.emplace_back(*it);
+                    *it = nullptr;
+                }
             }
         }
-        m_Cards.remove(nullptr);
+        m_Properties.remove(nullptr);
+        if (m_Properties.size() == 1)
+        {
+            m_Color = m_Properties[0]->GetCurrentColor();
+        }
         return cards;
     }
 
@@ -88,7 +104,7 @@ namespace Monopoly
     {
         if (m_Color == EColor::None || m_Color == EColor::All)
             return -1;
-        return m_Cards.size() - c_RentValues.at(m_Color).size();
+        return m_Properties.size() - c_RentValues.at(m_Color).size();
     }
 
     EColor CardSet::GetColor() const
@@ -98,12 +114,12 @@ namespace Monopoly
 
     bool CardSet::IsFull() const
     {
-        return m_Color != EColor::None && m_Color != EColor::All && c_RentValues.at(m_Color).size() == m_Cards.size();
+        return m_Color != EColor::None && m_Color != EColor::All && c_RentValues.at(m_Color).size() == m_Properties.size();
     }
 
-    bool CardSet::AddHouse(const CardContainerElem& cardHouse)
+    bool CardSet::TryAddHouse(const CardContainerElem& cardHouse)
     {
-        if (IsHasHouse() == false && cardHouse->GetActionType() == EActionType::House)
+        if (cardHouse->GetActionType() == EActionType::House && IsFull() && !IsHasHouse())
         {
             m_House = cardHouse;
             return true;
@@ -111,9 +127,9 @@ namespace Monopoly
         return false;
     }
 
-    bool CardSet::AddHotel(const CardContainerElem& cardHotel)
+    bool CardSet::TryAddHotel(const CardContainerElem& cardHotel)
     {
-        if (IsHasHouse() && IsHasHotel() == false && cardHotel->GetActionType() == EActionType::Hotel)
+        if (cardHotel->GetActionType() == EActionType::Hotel && IsFull() && IsHasHouse() && !IsHasHotel())
         {
             m_Hotel = cardHotel;
             return true;
@@ -133,16 +149,19 @@ namespace Monopoly
 
     int CardSet::GetPayValue() const
     {
-        if (m_Cards.size() == 0 || m_Color == EColor::All)
+        if (m_Properties.size() == 0 || m_Color == EColor::All)
         {
             return 0;
         }
-
-        auto res = c_RentValues.at(m_Color)[m_Cards.size() - 1];
+        int res = 0;
+        if (m_Color != EColor::None)
+        {
+            res = c_RentValues.at(m_Color)[m_Properties.size() - 1];
+        }
         if (IsHasHotel())
-            res += 4;
+            res += GetHotel()->GetValue();
         else if (IsHasHouse())
-            res += 3;
+            res += GetHouse()->GetValue();
         return res;
     }
 

@@ -8,19 +8,20 @@ namespace Monopoly
     {
     public:
         using CardSets = std::vector<CardSet>;
+
         std::vector<int> GetFullSetsIndices() const;
         std::vector<int> GetNotFullSetsIndices() const;
         int GetNotFullSetsCount() const;
         bool IsWinner() const;
 
-        size_t GetCountCardsInHand() const { return m_Hand.size(); }
+        size_t GetHandCardsCount() const { return m_Hand.size(); }
         const CardContainer& GetCardsInHand() const { return m_Hand; }
         const CardContainer& GetCardsInBank() const { return m_Bank; }
         const CardSets& GetCardSets() const { return m_CardSets; }
         
         int GetIndexJustSayNo() const;
-        bool AddHouseToCardSet(int setIndex, const CardContainerElem& card);
-        bool AddHotelToCardSet(int setIndex, const CardContainerElem& card);
+        bool TryAddHouseToCardSet(int setIndex, const CardContainerElem& card);
+        bool TryAddHotelToCardSet(int setIndex, const CardContainerElem& card);
         
         CardContainerElem RemoveCardFromHand(const int cardIndex);
         void AddCardToHand(const CardContainerElem& card);
@@ -38,7 +39,7 @@ namespace Monopoly
         void RemoveHousesHotelsFromIncompleteSets();
 
         void RemoveAllFromBank();
-        void AddProperty(const CardContainerElem& card);
+        void AddCard(const CardContainerElem& card);
         void RemoveSets();
 
         int CountBankAndPropertiesValues() const;

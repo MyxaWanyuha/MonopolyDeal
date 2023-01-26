@@ -111,6 +111,13 @@ public:
         // TODO
     }
 
+
+    // Inherited via IControllerIO
+    virtual const char* ToString() const override
+    {
+        return "";
+    }
+
 };
 
 TEST(GameTest, CreateGame)
@@ -155,10 +162,10 @@ TEST(GameTest, LoadGame)
         EXPECT_EQ(p.GetCardsInBank().size(), 0);
         EXPECT_EQ(p.GetCardSets().size(), 2);
 
-        EXPECT_EQ(p.GetCardSets()[0].GetCards().size(), 2);
+        EXPECT_EQ(p.GetCardSets()[0].GetProperties().size(), 2);
         EXPECT_EQ(p.GetCardSets()[0].IsHasHotel(), false);
         EXPECT_EQ(p.GetCardSets()[0].IsHasHouse(), false);
-        EXPECT_EQ(p.GetCardSets()[1].GetCards().size(), 1);
+        EXPECT_EQ(p.GetCardSets()[1].GetProperties().size(), 1);
         EXPECT_EQ(p.GetCardSets()[1].IsHasHotel(), false);
         EXPECT_EQ(p.GetCardSets()[1].IsHasHouse(), false);
     }
@@ -168,11 +175,11 @@ TEST(GameTest, LoadGame)
         EXPECT_EQ(p.GetCardsInBank().size(), 1);
         EXPECT_EQ(p.GetCardSets().size(), 2);
 
-        EXPECT_EQ(p.GetCardSets()[0].GetCards().size(), 1);
+        EXPECT_EQ(p.GetCardSets()[0].GetProperties().size(), 1);
         EXPECT_EQ(p.GetCardSets()[0].IsHasHotel(), false);
         EXPECT_EQ(p.GetCardSets()[0].IsHasHouse(), false);
 
-        EXPECT_EQ(p.GetCardSets()[1].GetCards().size(), 1);
+        EXPECT_EQ(p.GetCardSets()[1].GetProperties().size(), 1);
         EXPECT_EQ(p.GetCardSets()[1].IsHasHotel(), false);
         EXPECT_EQ(p.GetCardSets()[1].IsHasHouse(), false);
     }

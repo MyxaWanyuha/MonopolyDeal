@@ -2,7 +2,7 @@
 
 #include "AIController.h"
 #include "JsonConstants.h"
-extern bool s_ShowGameOutput;
+extern bool g_ShowGameOutput;
 namespace Monopoly
 {
 
@@ -29,7 +29,7 @@ namespace Monopoly
     {
         SelectMove();
 
-        if(s_ShowGameOutput) 
+        if(g_ShowGameOutput) 
             std::cout << "Player " << m_Index << " did " << m_Move << "\n\n";
         turn = m_Move[Monopoly::c_JSON_Command];
         cardIndex = m_Move.contains(Monopoly::c_JSON_CardIndex) ? m_Move[Monopoly::c_JSON_CardIndex] : -1;
@@ -96,48 +96,47 @@ namespace Monopoly
             }
             else
             {
-                if (player.GetCardSets().size() == 0)
+                if (player.GetCardSets().empty())
                     continue;
                 const auto setIndex = rand() % player.GetCardSets().size();
                 const auto& set = player.GetCardSets()[setIndex];
-                if (set.GetCards().empty())
+
+                if (set.IsHasHotel() 
+                    && std::find(setIndices[setIndex].begin(),
+                        setIndices[setIndex].end(),
+                        set.GetHotelIndex())
+                        == setIndices[setIndex].end())
                 {
-                    if (set.IsHasHouse())
-                    {
-                        payAmount += set.GetHouse()->GetValue();
-                        setIndices[setIndex].emplace_back(0);
-                    }
-                    else
-                    {
-                        payAmount += set.GetHotel()->GetValue();
-                        setIndices[setIndex].emplace_back(1);
-                    }
+                    setIndices[setIndex].emplace_back(set.GetHotelIndex());
+                    payAmount += set.GetHotel()->GetValue();
+                    if (payAmount >= amount)
+                        break;
                 }
-                else
+                
+                if (set.IsHasHouse()
+                    && std::find(setIndices[setIndex].begin(),
+                        setIndices[setIndex].end(),
+                        set.GetHouseIndex())
+                    == setIndices[setIndex].end())
                 {
-                    int addIndex = 0;
-                    if (set.IsHasHouse()) // index of house is set.size()
-                        ++addIndex;
-                    if (set.IsHasHotel()) // index of hotel is set.size() + 1
-                        ++addIndex;
-                    const auto propertyIndex = rand() % (set.GetCards().size() + addIndex);
-                    if (propertyIndex < set.GetCards().size())
-                    {
-                        if (set.GetCards()[propertyIndex]->GetValue() == 0)// is wild card
-                            continue;
-                        payAmount += set.GetCards()[propertyIndex]->GetValue();
-                    }
-                    else if (propertyIndex == set.GetCards().size())
-                    {
-                        payAmount += set.GetHouse()->GetValue();
-                    }
-                    else if (propertyIndex == (set.GetCards().size() + 1))
-                    {
-                        payAmount += set.GetHotel()->GetValue();
-                    }
-                    if(std::find(setIndices[setIndex].begin(), 
-                        setIndices[setIndex].end(), propertyIndex) == setIndices[setIndex].end())
-                        setIndices[setIndex].emplace_back(propertyIndex);
+                    setIndices[setIndex].emplace_back(set.GetHouseIndex());
+                    payAmount += set.GetHouse()->GetValue();
+                    if (payAmount >= amount)
+                        break;
+                }
+
+                if (set.GetProperties().empty())
+                    continue;
+
+                const auto propertyIndex = rand() % set.GetProperties().size();
+                if (set.GetProperties()[propertyIndex]->GetValue() == 0)// is wild card
+                    continue;
+
+                if (std::find(setIndices[setIndex].begin(), setIndices[setIndex].end(), propertyIndex)
+                    == setIndices[setIndex].end())
+                {
+                    setIndices[setIndex].emplace_back(propertyIndex);
+                    payAmount += set.GetProperties()[propertyIndex]->GetValue();
                 }
             }
         }
@@ -175,14 +174,9 @@ namespace Monopoly
     json AIController::GetAllValidPlayerTurns(int index) const
     {
         json turns;
-        {
-            json pass;
-            pass[Monopoly::c_JSON_Command] = ETurn::Pass;
-            pass[m_TurnValueStr] = 0;
-            turns += pass;
-        }
+        turns += { {Monopoly::c_JSON_Command, ETurn::Pass}, { m_TurnValueStr , 0} };
+        
         const auto& player = m_Game.GetPlayers()[index];
-
         for (int i = 0; i < player.GetCardsInHand().size(); ++i)
         {
             const auto& card = player.GetCardsInHand()[i];
@@ -226,9 +220,9 @@ namespace Monopoly
         for (int i = 0; i < player.GetCardSets().size(); ++i)
         {
             const auto& set = player.GetCardSets()[i];
-            for (int j = 0; j < set.GetCards().size(); ++j)
+            for (int j = 0; j < set.GetProperties().size(); ++j)
             {
-                const auto& card = set.GetCards()[j];
+                const auto& card = set.GetProperties()[j];
                 if (card->GetColor2() != Monopoly::EColor::None)
                 {
                     json flip;
@@ -333,7 +327,7 @@ namespace Monopoly
                 {
                     const auto& set = victim.GetCardSets()[i];
                     if (set.IsFull()) continue;
-                    for (int j = 0; j < set.GetCards().size(); ++j)
+                    for (int j = 0; j < set.GetProperties().size(); ++j)
                     {
                         auto max = 0;
                         for (const auto& playerSet : player.GetCardSets())
@@ -349,7 +343,7 @@ namespace Monopoly
                             { Monopoly::c_JSON_VictimIndex, p },
                             { Monopoly::c_JSON_VictimSetIndex , i },
                             { Monopoly::c_JSON_VictimPropertyIndexInSet, j },
-                            { m_TurnValueStr, set.GetCards()[j]->GetValue() + max } };
+                            { m_TurnValueStr, set.GetProperties()[j]->GetValue() + max } };
                     }
                 }
             }
@@ -361,12 +355,12 @@ namespace Monopoly
             {
                 const auto& set = player.GetCardSets()[i];
                 if (set.IsFull()) continue;
-                for (int j = 0; j < set.GetCards().size(); ++j)
+                for (int j = 0; j < set.GetProperties().size(); ++j)
                 {
                     json v;
                     v[Monopoly::c_JSON_PlayerSetIndex] = i;
                     v[Monopoly::c_JSON_PlayerPropertyIndexInSet] = j;
-                    v[m_TurnValueStr] = -set.GetCards()[j]->GetValue();
+                    v[m_TurnValueStr] = -set.GetProperties()[j]->GetValue();
                     playerProperties += v;
                 }
             }
@@ -381,7 +375,7 @@ namespace Monopoly
                 {
                     const auto& set = victim.GetCardSets()[i];
                     if (set.IsFull()) continue;
-                    for (int j = 0; j < set.GetCards().size(); ++j)
+                    for (int j = 0; j < set.GetProperties().size(); ++j)
                     {
                         for (const auto& e : playerProperties)
                         {
@@ -396,7 +390,7 @@ namespace Monopoly
                             //const int setInd = turn[Monopoly::c_JSON_PlayerSetIndex];
                             //const int propInd = turn[Monopoly::c_JSON_PlayerPropertyIndexInSet];
                             
-                            turn[m_TurnValueStr] = value + set.GetCards()[j]->GetValue();
+                            turn[m_TurnValueStr] = value + set.GetProperties()[j]->GetValue();
                             res += turn;
                         }
                     }

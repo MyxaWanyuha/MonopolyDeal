@@ -13,26 +13,32 @@ class Game
     using Players = std::vector<Player>;
     using Deck = std::deque<CardContainerElem>;
     using Discard = std::vector<CardContainerElem>;
+
     static constexpr int c_StartCardsCount = 5;
     static constexpr int c_TurnCardsCount = 3;
     static constexpr int c_PassGoCardsCount = 2;
     static constexpr int c_MaxCardsCountInTurnEnd = 7;
     static constexpr int c_ItsMyBirthdayAmount = 2;
     static constexpr int c_DebtCollectorAmount = 5;
+
 public:
+    using Controllers = std::vector<std::shared_ptr<IControllerIO>>;
+
     static constexpr uint32_t c_MinPlayersCount = 2;
     static constexpr uint32_t c_MaxPlayersCount = 5;
-    using Controllers = std::vector<std::shared_ptr<IControllerIO>>;
+    static constexpr int c_FullSetsCountForWin = 3;
+
     Game();
     Game(const std::string& fileName);
+
     bool InitNewGame(const uint32_t playersCount, const uint32_t seed);
     bool InitControllers(const Controllers& controllers);
     void InitOutputFunction(const std::function<void(const Game&)>& showGameData);
+
+    int Run();
+    int GetRichestPlayer() const;
     bool GetGameIsNotEnded() const { return m_WinnerIndex == -1; }
     int GetWinnderIndex() const { return m_WinnerIndex; }
-    static constexpr int c_FullSetsCountForWin = 3;
-    int Run();
-
     size_t GetDeckCardsCount() const { return m_Deck.size(); }
     const Discard& GetDrawCards() const { return m_Discard; }
     size_t GetPlayersCount() const { return m_Players.size(); }
@@ -51,7 +57,7 @@ public:
         NextPlayer,
         GameOver
     };
-    void GameBody();
+    int GameBody();
     int GetDoubleTheRentCountMayUse(const Player& player) const;
     void FindEnhancementsAndFullSetsWithout(const Monopoly::Player& currentPlayer,
         std::vector<int>& emptyHouseSetsIndexes,
@@ -60,6 +66,7 @@ public:
         std::vector<int>& fullSetsWithoutHotelsIndexes) const;
     bool CheckIfTheresCardsToPlay();
     int CardsInGameCount() const;
+
 private:
     void BeginTurn();
     ETurnOutput Turn(const ETurn input, const int cardIndex = -1, const int setIndex = -1);

@@ -55,21 +55,22 @@ namespace Monopoly
     public:
         CardSet(const CardContainerElem& card);
         CardSet(CardContainer&& cards, CardContainerElem&& house, CardContainerElem&& hotel, const EColor color)
-            : m_Cards(cards), m_House(house), m_Hotel(hotel), m_Color(color)
+            : m_Properties(cards), m_House(house), m_Hotel(hotel), m_Color(color)
         {
         }
-        const CardContainer& GetCards() const { return m_Cards; }
+        const CardContainer& GetProperties() const { return m_Properties; }
         void AddProperty(const CardContainerElem& card);
-        bool IsEmpty() const { return !IsHasHouse() && !IsHasHotel() && m_Cards.size() == 0; }
-        // GetCards().size() is index of House, GetCards().size() + 1 is index of Hotel 
+        bool IsEmpty() const { return !IsHasHouse() && !IsHasHotel() && m_Properties.size() == 0; }
+        size_t GetHouseIndex() const { return GetProperties().size(); }
+        size_t GetHotelIndex() const { return GetProperties().size() + 1; }
         CardContainerElem RemoveCard(int index);
         CardContainer RemoveCardsWithValueNotZero(const std::vector<int>& cardIndices);
         
         int HowManyCardsNeedToFull() const;
         EColor GetColor() const;
         bool IsFull() const;
-        bool AddHouse(const CardContainerElem& cardHouse);
-        bool AddHotel(const CardContainerElem& cardHotel);
+        bool TryAddHouse(const CardContainerElem& cardHouse);
+        bool TryAddHotel(const CardContainerElem& cardHotel);
         bool IsHasHouse() const;
         bool IsHasHotel() const;
         int GetPayValue() const;
@@ -79,7 +80,7 @@ namespace Monopoly
 
         const std::vector<int>& GetRentValues() const;
     private:
-        CardContainer m_Cards;
+        CardContainer m_Properties;
         CardContainerElem m_House = nullptr;
         CardContainerElem m_Hotel = nullptr;
         EColor m_Color;
